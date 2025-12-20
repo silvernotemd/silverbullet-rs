@@ -11,7 +11,7 @@ publish = false
 [dependencies]
 async-trait = "0.1.89"
 bytes = "1.11.0"
-opendal = { version = "0.55.0", optional = true }
+opendal = { version = "0.55.0", default-features = false, optional = true }
 futures = "0.3.31"
 mime_guess = { version = "2.0.5", optional = true}
 serde = { version = "1.0.228", features = ["derive"] }
