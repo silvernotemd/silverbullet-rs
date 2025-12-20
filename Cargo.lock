@@ -917,7 +917,6 @@ dependencies = [
  "async-trait",
  "bytes",
  "futures",
- "mime_guess",
  "opendal",
  "rust-embed",
  "serde",

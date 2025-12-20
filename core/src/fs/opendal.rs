@@ -113,7 +113,6 @@ impl From<(&str, ::opendal::Metadata)> for FileMeta {
             perm: "rw".to_string(), // Default to read-write for now
             content_type: metadata
                 .content_type()
-                .or_else(|| mime_guess::from_path(path).first_raw()) // TODO: this can probably be removed when using the mime guesser layer
                 .unwrap_or("application/octet-stream")
                 .to_string(),
 
