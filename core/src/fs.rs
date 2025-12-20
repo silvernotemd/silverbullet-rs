@@ -106,7 +106,7 @@ pub struct FileMeta {
     pub size: u64,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct IncomingFileMeta {
     pub created: Option<u64>,
     pub perm: Option<String>,
