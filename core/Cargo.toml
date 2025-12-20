@@ -11,8 +11,9 @@ publish = false
 [dependencies]
 async-trait = "0.1.89"
 bytes = "1.11.0"
-opendal = { version = "0.55.0", default-features = false, optional = true }
 futures = "0.3.31"
+minijinja = { version = "2.14.0", optional = true }
+opendal = { version = "0.55.0", default-features = false, optional = true }
 serde = { version = "1.0.228", features = ["derive"] }
 rust-embed = { version = "8.9.0", features = ["interpolate-folder-path", "mime-guess"], optional = true }
 thiserror = "2.0.17"
@@ -22,3 +23,4 @@ web-time = { version = "0.1.0", optional = true }
 default = []
 embed = ["dep:rust-embed", "dep:web-time"]
 opendal = ["dep:opendal", "dep:web-time"]
+minijinja = ["dep:minijinja"]
