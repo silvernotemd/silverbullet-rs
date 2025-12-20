@@ -102,8 +102,8 @@ impl ReadOnlyFilesystem for Filesystem {
 
 #[async_trait(?Send)]
 impl WritableFilesystem for Filesystem {
-    async fn put(&self, path: &str, data: Stream) -> Result<FileMeta> {
-        self.root.put(path, data).await
+    async fn put(&self, path: &str, data: Stream, meta: IncomingFileMeta) -> Result<FileMeta> {
+        self.root.put(path, data, meta).await
     }
 
     async fn delete(&self, path: &str) -> Result<()> {

@@ -88,7 +88,7 @@ pub trait ReadOnlyFilesystem {
 #[allow(async_fn_in_trait)]
 #[async_trait(?Send)]
 pub trait WritableFilesystem {
-    async fn put(&self, path: &str, data: Stream) -> Result<FileMeta>;
+    async fn put(&self, path: &str, data: Stream, meta: IncomingFileMeta) -> Result<FileMeta>;
     async fn delete(&self, path: &str) -> Result<()>;
 }
 
@@ -104,4 +104,13 @@ pub struct FileMeta {
     pub content_type: String,
     pub last_modified: u64,
     pub size: u64,
+}
+
+#[derive(Debug, Clone)]
+pub struct IncomingFileMeta {
+    pub created: Option<u64>,
+    pub perm: Option<String>,
+    pub content_type: Option<String>,
+    pub last_modified: Option<u64>,
+    pub size: Option<u64>,
 }

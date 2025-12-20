@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use ::opendal::Operator;
 use async_trait::async_trait;
 use futures::StreamExt;
@@ -50,13 +52,21 @@ impl ReadOnlyFilesystem for Filesystem {
 
 #[async_trait(?Send)]
 impl WritableFilesystem for Filesystem {
-    async fn put(&self, path: &str, mut data: Stream) -> Result<FileMeta> {
-        let mut writer = self.operator.writer(path).await?;
+    async fn put(&self, path: &str, mut data: Stream, meta: IncomingFileMeta) -> Result<FileMeta> {
+        let mut options = ::opendal::options::WriteOptions::default();
+        options.content_type = meta.content_type;
 
-        // Stream the data to OpenDAL
+        if let Some(created) = meta.created {
+            let mut user_metadata = HashMap::<String, String>::new();
+            user_metadata.insert("created".to_string(), created.to_string());
+
+            options.user_metadata = Some(user_metadata);
+        }
+
+        let mut writer = self.operator.writer_options(path, options).await?;
+
         while let Some(chunk) = data.next().await {
-            let bytes = chunk?;
-            writer.write(bytes).await?;
+            writer.write(chunk?).await?;
         }
 
         writer.close().await?;
