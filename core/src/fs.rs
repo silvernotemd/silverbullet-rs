@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use bytes::Bytes;
-use futures::StreamExt;
+use futures::StreamExt as _;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -34,23 +34,48 @@ pub type Stream =
     futures::stream::LocalBoxStream<'static, std::result::Result<Bytes, std::io::Error>>;
 
 #[cfg(target_arch = "wasm32")]
-pub fn box_stream<S>(stream: S) -> Stream
+fn box_stream<S>(stream: S) -> Stream
 where
     S: futures::Stream<Item = std::result::Result<Bytes, std::io::Error>> + 'static,
 {
     stream.boxed_local()
 }
 
+#[cfg(target_arch = "wasm32")]
+pub trait StreamExt {
+    fn into_boxed(self) -> Stream
+    where
+        Self: Sized + futures::Stream<Item = std::result::Result<Bytes, std::io::Error>> + 'static,
+    {
+        box_stream(self)
+    }
+}
+
 #[cfg(not(target_arch = "wasm32"))]
 pub type Stream = futures::stream::BoxStream<'static, std::result::Result<Bytes, std::io::Error>>;
 
 #[cfg(not(target_arch = "wasm32"))]
-pub fn box_stream<S>(stream: S) -> Stream
+fn box_stream<S>(stream: S) -> Stream
 where
     S: futures::Stream<Item = std::result::Result<Bytes, std::io::Error>> + Send + 'static,
 {
     stream.boxed()
 }
+
+#[cfg(not(target_arch = "wasm32"))]
+pub trait StreamExt {
+    fn into_boxed(self) -> Stream
+    where
+        Self: Sized
+            + futures::Stream<Item = std::result::Result<Bytes, std::io::Error>>
+            + Send
+            + 'static,
+    {
+        box_stream(self)
+    }
+}
+
+impl<S> StreamExt for S where S: futures::Stream {}
 
 #[allow(async_fn_in_trait)]
 #[async_trait(?Send)]
