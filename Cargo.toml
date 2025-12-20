@@ -7,8 +7,8 @@ edition = "2024"
 version = "0.0.0"
 description = "Silverbullet reimplemented in Rust"
 license = "Proprietary"
-repository = "https://github.com/silvernote/silverbullet-rs"
-homepage = "https://github.com/silvernote/silverbullet-rs"
+repository = "https://github.com/silvernotemd/silverbullet-rs"
+homepage = "https://github.com/silvernotemd/silverbullet-rs"
 
 [workspace.dependencies]
 silverbullet = { path = "core" }
