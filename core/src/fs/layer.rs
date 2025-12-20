@@ -2,29 +2,29 @@ use async_trait::async_trait;
 
 use crate::fs::*;
 
-pub struct LayerFS {
+pub struct Filesystem {
     layers: Vec<Box<dyn ReadOnlyFilesystem>>,
     root: Box<dyn ReadWriteFilesystem>,
 }
 
-impl LayerFS {
-    pub fn builder<R>(root: R) -> LayerFSBuilder
+impl Filesystem {
+    pub fn builder<R>(root: R) -> Builder
     where
         R: ReadWriteFilesystem + 'static,
     {
-        LayerFSBuilder {
+        Builder {
             layers: Vec::new(),
             root: Box::new(root),
         }
     }
 }
 
-pub struct LayerFSBuilder {
+pub struct Builder {
     layers: Vec<Box<dyn ReadOnlyFilesystem>>,
     root: Box<dyn ReadWriteFilesystem>,
 }
 
-impl LayerFSBuilder {
+impl Builder {
     pub fn new<R>(root: R) -> Self
     where
         R: ReadWriteFilesystem + 'static,
@@ -43,8 +43,8 @@ impl LayerFSBuilder {
         self
     }
 
-    pub fn build(self) -> LayerFS {
-        LayerFS {
+    pub fn build(self) -> Filesystem {
+        Filesystem {
             layers: self.layers,
             root: self.root,
         }
@@ -52,7 +52,7 @@ impl LayerFSBuilder {
 }
 
 #[async_trait(?Send)]
-impl ReadOnlyFilesystem for LayerFS {
+impl ReadOnlyFilesystem for Filesystem {
     async fn list(&self) -> Result<Vec<FileMeta>> {
         let mut all_files = std::collections::HashMap::new();
 
@@ -101,7 +101,7 @@ impl ReadOnlyFilesystem for LayerFS {
 }
 
 #[async_trait(?Send)]
-impl WritableFilesystem for LayerFS {
+impl WritableFilesystem for Filesystem {
     async fn put(&self, path: &str, data: Stream) -> Result<FileMeta> {
         self.root.put(path, data).await
     }
