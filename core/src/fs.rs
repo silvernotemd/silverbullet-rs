@@ -5,7 +5,6 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 pub mod layer;
-mod now;
 
 #[cfg(feature = "embed")]
 pub mod embed;

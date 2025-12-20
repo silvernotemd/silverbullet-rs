@@ -1,6 +1,7 @@
 use ::opendal::Operator;
 use async_trait::async_trait;
 use futures::StreamExt;
+use web_time::{SystemTime, UNIX_EPOCH};
 
 use crate::fs::*;
 
@@ -93,7 +94,12 @@ impl From<(&str, ::opendal::Metadata)> for FileMeta {
                 .user_metadata()
                 .and_then(|um| um.get("created"))
                 .and_then(|s| s.parse().ok())
-                .unwrap_or_else(crate::fs::now::unix_timestamp),
+                .unwrap_or_else(|| {
+                    SystemTime::now()
+                        .duration_since(UNIX_EPOCH)
+                        .map(|d| d.as_secs())
+                        .unwrap_or(0)
+                }),
             perm: "rw".to_string(), // Default to read-write for now
             content_type: metadata
                 .content_type()
@@ -104,7 +110,12 @@ impl From<(&str, ::opendal::Metadata)> for FileMeta {
             last_modified: metadata
                 .last_modified()
                 .map(|lm| lm.into_inner().as_second().unsigned_abs())
-                .unwrap_or_else(crate::fs::now::unix_timestamp),
+                .unwrap_or_else(|| {
+                    SystemTime::now()
+                        .duration_since(UNIX_EPOCH)
+                        .map(|d| d.as_secs())
+                        .unwrap_or(0)
+                }),
             size: metadata.content_length(),
         }
     }
