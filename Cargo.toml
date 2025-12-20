@@ -1,0 +1,21 @@
+[workspace]
+members = ["core"]
+resolver = "2"
+
+[workspace.package]
+edition = "2024"
+version = "0.0.0"
+description = "Silverbullet reimplemented in Rust"
+license = "Proprietary"
+repository = "https://github.com/silvernote/silverbullet-rs"
+homepage = "https://github.com/silvernote/silverbullet-rs"
+
+[workspace.dependencies]
+silverbullet = { path = "core" }
+
+[workspace.metadata.release]
+publish = false
+sign-commit = true
+sign-tag = true
+tag-message = "Release {{version}}"
+tag-prefix = ""
