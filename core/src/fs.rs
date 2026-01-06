@@ -106,6 +106,27 @@ pub struct FileMeta {
     pub size: u64,
 }
 
+#[cfg(feature = "http")]
+impl TryFrom<FileMeta> for http::HeaderMap {
+    type Error = http::header::InvalidHeaderValue;
+
+    fn try_from(value: FileMeta) -> std::result::Result<Self, Self::Error> {
+        let mut headers = http::HeaderMap::new();
+
+        headers.insert(http::header::CONTENT_TYPE, value.content_type.parse()?);
+        headers.insert(
+            http::header::CONTENT_LENGTH,
+            value.size.to_string().parse()?,
+        );
+        headers.insert("X-Content-Length", value.size.to_string().parse()?);
+        headers.insert("X-Created", value.created.to_string().parse()?);
+        headers.insert("X-Last-Modified", value.last_modified.to_string().parse()?);
+        headers.insert("X-Permission", value.perm.as_str().parse()?);
+
+        Ok(headers)
+    }
+}
+
 #[derive(Debug, Clone, Default)]
 pub struct IncomingFileMeta {
     pub created: Option<u64>,
@@ -113,4 +134,116 @@ pub struct IncomingFileMeta {
     pub content_type: Option<String>,
     pub last_modified: Option<u64>,
     pub size: Option<u64>,
+}
+
+#[cfg(feature = "http")]
+impl TryFrom<http::HeaderMap> for IncomingFileMeta {
+    type Error = Box<dyn std::error::Error>;
+
+    fn try_from(value: http::HeaderMap) -> std::result::Result<Self, Self::Error> {
+        use std::str::FromStr;
+
+        fn get_header<T: FromStr>(
+            headers: &http::HeaderMap,
+            name: impl http::header::AsHeaderName,
+        ) -> std::result::Result<Option<T>, Box<dyn std::error::Error>>
+        where
+            T::Err: std::error::Error + 'static,
+        {
+            headers
+                .get(name)
+                .map(|v| Ok(v.to_str()?.parse()?))
+                .transpose()
+        }
+
+        Ok(IncomingFileMeta {
+            created: get_header(&value, "x-created")?,
+            content_type: get_header(&value, http::header::CONTENT_TYPE)?,
+            ..Default::default()
+        })
+    }
+}
+
+#[cfg(all(test, feature = "http"))]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn file_meta_to_header_map() {
+        let meta = FileMeta {
+            name: "test.txt".to_string(),
+            created: 1000,
+            perm: "rw".to_string(),
+            content_type: "text/plain".to_string(),
+            last_modified: 2000,
+            size: 42,
+        };
+
+        let headers: http::HeaderMap = meta.try_into().unwrap();
+
+        assert_eq!(
+            headers.get(http::header::CONTENT_TYPE).unwrap(),
+            "text/plain"
+        );
+        assert_eq!(headers.get(http::header::CONTENT_LENGTH).unwrap(), "42");
+        assert_eq!(headers.get("X-Content-Length").unwrap(), "42");
+        assert_eq!(headers.get("X-Created").unwrap(), "1000");
+        assert_eq!(headers.get("X-Last-Modified").unwrap(), "2000");
+        assert_eq!(headers.get("X-Permission").unwrap(), "rw");
+    }
+
+    #[test]
+    fn file_meta_to_header_map_invalid_content_type() {
+        let meta = FileMeta {
+            name: "test.txt".to_string(),
+            created: 1000,
+            perm: "rw".to_string(),
+            content_type: "invalid\x00header".to_string(),
+            last_modified: 2000,
+            size: 42,
+        };
+
+        let result: std::result::Result<http::HeaderMap, _> = meta.try_into();
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn header_map_to_incoming_file_meta() {
+        let mut headers = http::HeaderMap::new();
+        headers.insert(
+            http::header::CONTENT_TYPE,
+            "application/json".parse().unwrap(),
+        );
+        headers.insert("x-created", "1234".parse().unwrap());
+
+        let meta: IncomingFileMeta = headers.try_into().unwrap();
+
+        assert_eq!(meta.content_type, Some("application/json".to_string()));
+        assert_eq!(meta.created, Some(1234));
+        assert_eq!(meta.perm, None);
+        assert_eq!(meta.last_modified, None);
+        assert_eq!(meta.size, None);
+    }
+
+    #[test]
+    fn header_map_to_incoming_file_meta_empty() {
+        let headers = http::HeaderMap::new();
+
+        let meta: IncomingFileMeta = headers.try_into().unwrap();
+
+        assert_eq!(meta.content_type, None);
+        assert_eq!(meta.created, None);
+        assert_eq!(meta.perm, None);
+        assert_eq!(meta.last_modified, None);
+        assert_eq!(meta.size, None);
+    }
+
+    #[test]
+    fn header_map_to_incoming_file_meta_invalid_created() {
+        let mut headers = http::HeaderMap::new();
+        headers.insert("x-created", "not-a-number".parse().unwrap());
+
+        let result: std::result::Result<IncomingFileMeta, _> = headers.try_into();
+        assert!(result.is_err());
+    }
 }

@@ -12,6 +12,7 @@ publish = false
 async-trait = "0.1.89"
 bytes = "1.11.0"
 futures = "0.3.31"
+http = { version = "1.4.0", optional = true }
 minijinja = { version = "2.14.0", optional = true }
 opendal = { version = "0.55.0", default-features = false, optional = true }
 serde = { version = "1.0.228", features = ["derive"] }
@@ -22,5 +23,6 @@ web-time = { version = "0.1.0", optional = true }
 [features]
 default = []
 embed = ["dep:rust-embed", "dep:web-time"]
+http = ["dep:http"]
 opendal = ["dep:opendal", "dep:web-time"]
 minijinja = ["dep:minijinja"]

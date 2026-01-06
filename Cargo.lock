@@ -926,6 +926,7 @@ dependencies = [
  "async-trait",
  "bytes",
  "futures",
+ "http",
  "minijinja",
  "opendal",
  "rust-embed",
