@@ -48,6 +48,13 @@ pub struct LogEntry {
 pub struct TracingLogger;
 
 #[cfg(feature = "tracing")]
+impl TracingLogger {
+    pub fn new() -> Self {
+        TracingLogger
+    }
+}
+
+#[cfg(feature = "tracing")]
 macro_rules! tracing_log_entry {
     ($level:expr, $entry:expr) => {
         tracing::event!(
