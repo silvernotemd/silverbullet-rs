@@ -109,7 +109,7 @@ impl From<(&str, ::opendal::Metadata)> for FileMeta {
                 .unwrap_or_else(|| {
                     SystemTime::now()
                         .duration_since(UNIX_EPOCH)
-                        .map(|d| d.as_millis() as u64)
+                        .map(|d| d.as_millis() as u64) // https://github.com/silverbulletmd/silverbullet/issues/1762
                         .unwrap_or(0)
                 }),
             perm: "rw".to_string(), // Default to read-write for now
@@ -124,7 +124,7 @@ impl From<(&str, ::opendal::Metadata)> for FileMeta {
                 .unwrap_or_else(|| {
                     SystemTime::now()
                         .duration_since(UNIX_EPOCH)
-                        .map(|d| d.as_millis() as u64)
+                        .map(|d| d.as_millis() as u64) // https://github.com/silverbulletmd/silverbullet/issues/1762
                         .unwrap_or(0)
                 }),
             size: metadata.content_length(),
