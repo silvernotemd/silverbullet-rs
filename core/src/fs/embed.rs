@@ -57,20 +57,28 @@ impl From<(&str, rust_embed::EmbeddedFile)> for FileMeta {
     fn from((name, file): (&str, rust_embed::EmbeddedFile)) -> Self {
         FileMeta {
             name: name.to_string(),
-            created: file.metadata.created().unwrap_or_else(|| {
-                SystemTime::now()
-                    .duration_since(UNIX_EPOCH)
-                    .map(|d| d.as_secs())
-                    .unwrap_or(0)
-            }),
+            created: file
+                .metadata
+                .created()
+                .map(|s| s * 1000)
+                .unwrap_or_else(|| {
+                    SystemTime::now()
+                        .duration_since(UNIX_EPOCH)
+                        .map(|d| d.as_millis() as u64)
+                        .unwrap_or(0)
+                }),
             perm: "ro".to_string(), // Default permission for embedded files
             content_type: file.metadata.mimetype().to_string(),
-            last_modified: file.metadata.last_modified().unwrap_or_else(|| {
-                SystemTime::now()
-                    .duration_since(UNIX_EPOCH)
-                    .map(|d| d.as_secs())
-                    .unwrap_or(0)
-            }),
+            last_modified: file
+                .metadata
+                .last_modified()
+                .map(|s| s * 1000)
+                .unwrap_or_else(|| {
+                    SystemTime::now()
+                        .duration_since(UNIX_EPOCH)
+                        .map(|d| d.as_millis() as u64)
+                        .unwrap_or(0)
+                }),
             size: file.data.len() as u64,
         }
     }

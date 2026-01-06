@@ -172,10 +172,10 @@ mod tests {
     fn file_meta_to_header_map() {
         let meta = FileMeta {
             name: "test.txt".to_string(),
-            created: 1000,
+            created: 1000000,
             perm: "rw".to_string(),
             content_type: "text/plain".to_string(),
-            last_modified: 2000,
+            last_modified: 2000000,
             size: 42,
         };
 
@@ -187,8 +187,8 @@ mod tests {
         );
         assert_eq!(headers.get(http::header::CONTENT_LENGTH).unwrap(), "42");
         assert_eq!(headers.get("X-Content-Length").unwrap(), "42");
-        assert_eq!(headers.get("X-Created").unwrap(), "1000");
-        assert_eq!(headers.get("X-Last-Modified").unwrap(), "2000");
+        assert_eq!(headers.get("X-Created").unwrap(), "1000000");
+        assert_eq!(headers.get("X-Last-Modified").unwrap(), "2000000");
         assert_eq!(headers.get("X-Permission").unwrap(), "rw");
     }
 
@@ -196,10 +196,10 @@ mod tests {
     fn file_meta_to_header_map_invalid_content_type() {
         let meta = FileMeta {
             name: "test.txt".to_string(),
-            created: 1000,
+            created: 1000000,
             perm: "rw".to_string(),
             content_type: "invalid\x00header".to_string(),
-            last_modified: 2000,
+            last_modified: 2000000,
             size: 42,
         };
 

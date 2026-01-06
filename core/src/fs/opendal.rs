@@ -109,7 +109,7 @@ impl From<(&str, ::opendal::Metadata)> for FileMeta {
                 .unwrap_or_else(|| {
                     SystemTime::now()
                         .duration_since(UNIX_EPOCH)
-                        .map(|d| d.as_secs())
+                        .map(|d| d.as_millis() as u64)
                         .unwrap_or(0)
                 }),
             perm: "rw".to_string(), // Default to read-write for now
@@ -120,11 +120,11 @@ impl From<(&str, ::opendal::Metadata)> for FileMeta {
 
             last_modified: metadata
                 .last_modified()
-                .map(|lm| lm.into_inner().as_second().unsigned_abs())
+                .map(|lm| lm.into_inner().as_millisecond().unsigned_abs())
                 .unwrap_or_else(|| {
                     SystemTime::now()
                         .duration_since(UNIX_EPOCH)
-                        .map(|d| d.as_secs())
+                        .map(|d| d.as_millis() as u64)
                         .unwrap_or(0)
                 }),
             size: metadata.content_length(),
