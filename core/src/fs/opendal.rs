@@ -53,8 +53,10 @@ impl ReadOnlyFilesystem for Filesystem {
 #[async_trait(?Send)]
 impl WritableFilesystem for Filesystem {
     async fn put(&self, path: &str, mut data: Stream, meta: IncomingFileMeta) -> Result<FileMeta> {
-        let mut options = ::opendal::options::WriteOptions::default();
-        options.content_type = meta.content_type;
+        let mut options = ::opendal::options::WriteOptions {
+            content_type: meta.content_type,
+            ..Default::default()
+        };
 
         if let Some(created) = meta.created {
             let mut user_metadata = HashMap::<String, String>::new();

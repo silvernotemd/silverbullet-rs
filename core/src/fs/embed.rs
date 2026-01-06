@@ -10,6 +10,12 @@ pub struct Filesystem<E: Embed> {
     embed: std::marker::PhantomData<E>,
 }
 
+impl<E: Embed> Default for Filesystem<E> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<E: Embed> Filesystem<E> {
     pub fn new() -> Self {
         Self {
@@ -28,21 +34,21 @@ impl<E: Embed> ReadOnlyFilesystem for Filesystem<E> {
 
     async fn get(&self, path: &str) -> Result<(Stream, FileMeta)> {
         E::get(path)
-            .and_then(|file| {
+            .map(|file| {
                 let bytes = match file.data.clone() {
                     std::borrow::Cow::Borrowed(slice) => Bytes::from_static(slice),
                     std::borrow::Cow::Owned(vec) => Bytes::from(vec),
                 };
                 let stream = stream::once(std::future::ready(Ok::<Bytes, std::io::Error>(bytes)));
 
-                Some((box_stream(stream), (path, file).into()))
+                (box_stream(stream), (path, file).into())
             })
             .ok_or_else(|| Error::NotFound(format!("Embedded file not found: {}", path).into()))
     }
 
     async fn meta(&self, path: &str) -> Result<FileMeta> {
         E::get(path)
-            .and_then(|file| Some((path, file).into()))
+            .map(|file| (path, file).into())
             .ok_or_else(|| Error::NotFound(format!("Embedded file not found: {}", path).into()))
     }
 }
