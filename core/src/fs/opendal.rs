@@ -41,7 +41,10 @@ impl ReadOnlyFilesystem for Filesystem {
             .into_bytes_stream(..)
             .await?;
 
-        Ok((box_stream(stream), (path, stat).into()))
+        use crate::fs::StreamExt;
+
+        Ok((stream.into_boxed(), (path, stat).into()))
+        // Ok((box_stream(stream), (path, stat).into()))
     }
 
     async fn meta(&self, path: &str) -> Result<FileMeta> {

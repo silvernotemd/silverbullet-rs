@@ -29,38 +29,15 @@ pub enum Error {
 
 pub type Result<T> = std::result::Result<T, Error>;
 
-#[cfg(target_arch = "wasm32")]
-pub type Stream =
-    futures::stream::LocalBoxStream<'static, std::result::Result<Bytes, std::io::Error>>;
-
-#[cfg(target_arch = "wasm32")]
-fn box_stream<S>(stream: S) -> Stream
-where
-    S: futures::Stream<Item = std::result::Result<Bytes, std::io::Error>> + 'static,
-{
-    stream.boxed_local()
-}
-
-#[cfg(target_arch = "wasm32")]
-pub trait StreamExt {
-    fn into_boxed(self) -> Stream
-    where
-        Self: Sized + futures::Stream<Item = std::result::Result<Bytes, std::io::Error>> + 'static,
-    {
-        box_stream(self)
-    }
-}
-
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(any(
+    not(target_arch = "wasm32"),
+    all(target_arch = "wasm32", feature = "unsafe")
+))]
 pub type Stream = futures::stream::BoxStream<'static, std::result::Result<Bytes, std::io::Error>>;
 
-#[cfg(not(target_arch = "wasm32"))]
-fn box_stream<S>(stream: S) -> Stream
-where
-    S: futures::Stream<Item = std::result::Result<Bytes, std::io::Error>> + Send + 'static,
-{
-    stream.boxed()
-}
+#[cfg(all(target_arch = "wasm32", not(feature = "unsafe")))]
+pub type Stream =
+    futures::stream::LocalBoxStream<'static, std::result::Result<Bytes, std::io::Error>>;
 
 #[cfg(not(target_arch = "wasm32"))]
 pub trait StreamExt {
@@ -71,7 +48,30 @@ pub trait StreamExt {
             + Send
             + 'static,
     {
-        box_stream(self)
+        self.boxed()
+    }
+}
+
+#[cfg(all(target_arch = "wasm32", feature = "unsafe"))]
+pub trait StreamExt {
+    fn into_boxed(self) -> Stream
+    where
+        Self: Sized + futures::Stream<Item = std::result::Result<Bytes, std::io::Error>> + 'static,
+    {
+        let local_stream = self.boxed_local();
+
+        // SAFETY: Only safe on single-threaded WASM environments
+        unsafe { std::mem::transmute(local_stream) }
+    }
+}
+
+#[cfg(all(target_arch = "wasm32", not(feature = "unsafe")))]
+pub trait StreamExt {
+    fn into_boxed(self) -> Stream
+    where
+        Self: Sized + futures::Stream<Item = std::result::Result<Bytes, std::io::Error>> + 'static,
+    {
+        self.boxed_local()
     }
 }
 

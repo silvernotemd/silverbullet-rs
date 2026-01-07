@@ -40,9 +40,12 @@ impl<E: Embed + Send + Sync> ReadOnlyFilesystem for Filesystem<E> {
                     std::borrow::Cow::Borrowed(slice) => Bytes::from_static(slice),
                     std::borrow::Cow::Owned(vec) => Bytes::from(vec),
                 };
+
                 let stream = stream::once(std::future::ready(Ok::<Bytes, std::io::Error>(bytes)));
 
-                (box_stream(stream), (path, file).into())
+                use crate::fs::StreamExt;
+
+                (stream.into_boxed(), (path, file).into())
             })
             .ok_or_else(|| Error::NotFound(format!("Embedded file not found: {}", path).into()))
     }

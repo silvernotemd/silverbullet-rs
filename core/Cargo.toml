@@ -25,6 +25,7 @@ web-time = { version = "0.1.0", optional = true }
 [features]
 default = []
 axum = ["dep:axum"]
+unsafe = []
 embed = ["dep:rust-embed", "dep:web-time"]
 http = ["dep:http"]
 opendal = ["dep:opendal", "dep:web-time"]
