@@ -26,7 +26,7 @@ impl<E: Embed> Filesystem<E> {
 
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
-impl<E: Embed + std::marker::Sync> ReadOnlyFilesystem for Filesystem<E> {
+impl<E: Embed + Send + Sync> ReadOnlyFilesystem for Filesystem<E> {
     async fn list(&self) -> Result<Vec<FileMeta>> {
         Ok(E::iter()
             .filter_map(|path| E::get(&path).map(|file| (path.as_ref(), file).into()))

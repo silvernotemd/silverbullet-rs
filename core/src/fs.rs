@@ -81,7 +81,7 @@ impl<S> StreamExt for S where S: futures::Stream {}
 // #[async_trait(?Send)]
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
-pub trait ReadOnlyFilesystem {
+pub trait ReadOnlyFilesystem: Send + Sync {
     async fn list(&self) -> Result<Vec<FileMeta>>;
     async fn get(&self, path: &str) -> Result<(Stream, FileMeta)>;
     async fn meta(&self, path: &str) -> Result<FileMeta>;
@@ -90,7 +90,7 @@ pub trait ReadOnlyFilesystem {
 #[allow(async_fn_in_trait)]
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
-pub trait WritableFilesystem {
+pub trait WritableFilesystem: Send + Sync {
     async fn put(&self, path: &str, data: Stream, meta: IncomingFileMeta) -> Result<FileMeta>;
     async fn delete(&self, path: &str) -> Result<()>;
 }
@@ -167,8 +167,38 @@ impl TryFrom<http::HeaderMap> for IncomingFileMeta {
     }
 }
 
-#[cfg(all(test, feature = "http"))]
+#[cfg(test)]
 mod tests {
+    #[allow(dead_code)]
+    fn assert_send_sync<T: Send + Sync>() {}
+
+    #[test]
+    #[cfg(all(not(target_arch = "wasm32"), feature = "opendal"))]
+    fn opendal_filesystem_is_send_sync() {
+        assert_send_sync::<crate::fs::opendal::Filesystem>();
+    }
+
+    #[test]
+    #[cfg(not(target_arch = "wasm32"))]
+    fn layer_filesystem_is_send_sync() {
+        assert_send_sync::<crate::fs::layer::Filesystem>();
+    }
+
+    #[test]
+    #[cfg(all(not(target_arch = "wasm32"), feature = "embed"))]
+    fn embed_filesystem_is_send_sync() {
+        use rust_embed::Embed;
+
+        #[derive(Embed)]
+        #[folder = "src"]
+        struct TestEmbed;
+
+        assert_send_sync::<crate::fs::embed::Filesystem<TestEmbed>>();
+    }
+}
+
+#[cfg(all(test, feature = "http"))]
+mod http_tests {
     use super::*;
 
     #[test]

@@ -2,13 +2,13 @@ use async_trait::async_trait;
 
 use crate::fs::*;
 
-#[cfg(target_arch = "wasm32")]
-pub struct Filesystem {
-    layers: Vec<Box<dyn ReadOnlyFilesystem>>,
-    root: Box<dyn ReadWriteFilesystem>,
-}
+// #[cfg(target_arch = "wasm32")]
+// pub struct Filesystem {
+//     layers: Vec<Box<dyn ReadOnlyFilesystem>>,
+//     root: Box<dyn ReadWriteFilesystem>,
+// }
 
-#[cfg(not(target_arch = "wasm32"))]
+// #[cfg(not(target_arch = "wasm32"))]
 pub struct Filesystem {
     layers: Vec<Box<dyn ReadOnlyFilesystem + Send + Sync>>,
     root: Box<dyn ReadWriteFilesystem + Send + Sync>,
