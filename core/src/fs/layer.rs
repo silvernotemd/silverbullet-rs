@@ -14,20 +14,20 @@ pub struct Filesystem {
     root: Box<dyn ReadWriteFilesystem + Send + Sync>,
 }
 
-#[cfg(target_arch = "wasm32")]
-impl Filesystem {
-    pub fn builder<R>(root: R) -> Builder
-    where
-        R: ReadWriteFilesystem + 'static,
-    {
-        Builder {
-            layers: Vec::new(),
-            root: Box::new(root),
-        }
-    }
-}
+// #[cfg(target_arch = "wasm32")]
+// impl Filesystem {
+//     pub fn builder<R>(root: R) -> Builder
+//     where
+//         R: ReadWriteFilesystem + 'static,
+//     {
+//         Builder {
+//             layers: Vec::new(),
+//             root: Box::new(root),
+//         }
+//     }
+// }
 
-#[cfg(not(target_arch = "wasm32"))]
+// #[cfg(not(target_arch = "wasm32"))]
 impl Filesystem {
     pub fn builder<R>(root: R) -> Builder
     where
