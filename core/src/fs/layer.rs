@@ -40,47 +40,47 @@ impl Filesystem {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
-pub struct Builder {
-    layers: Vec<Box<dyn ReadOnlyFilesystem>>,
-    root: Box<dyn ReadWriteFilesystem>,
-}
+// #[cfg(target_arch = "wasm32")]
+// pub struct Builder {
+//     layers: Vec<Box<dyn ReadOnlyFilesystem>>,
+//     root: Box<dyn ReadWriteFilesystem>,
+// }
 
-#[cfg(not(target_arch = "wasm32"))]
+// #[cfg(not(target_arch = "wasm32"))]
 pub struct Builder {
     layers: Vec<Box<dyn ReadOnlyFilesystem + Send + Sync>>,
     root: Box<dyn ReadWriteFilesystem + Send + Sync>,
 }
 
-#[cfg(target_arch = "wasm32")]
-impl Builder {
-    pub fn new<R>(root: R) -> Self
-    where
-        R: ReadWriteFilesystem + 'static,
-    {
-        Self {
-            layers: Vec::new(),
-            root: Box::new(root),
-        }
-    }
+// #[cfg(target_arch = "wasm32")]
+// impl Builder {
+//     pub fn new<R>(root: R) -> Self
+//     where
+//         R: ReadWriteFilesystem + 'static,
+//     {
+//         Self {
+//             layers: Vec::new(),
+//             root: Box::new(root),
+//         }
+//     }
 
-    pub fn layer<L>(mut self, layer: L) -> Self
-    where
-        L: ReadOnlyFilesystem + 'static,
-    {
-        self.layers.push(Box::new(layer));
-        self
-    }
+//     pub fn layer<L>(mut self, layer: L) -> Self
+//     where
+//         L: ReadOnlyFilesystem + 'static,
+//     {
+//         self.layers.push(Box::new(layer));
+//         self
+//     }
 
-    pub fn build(self) -> Filesystem {
-        Filesystem {
-            layers: self.layers,
-            root: self.root,
-        }
-    }
-}
+//     pub fn build(self) -> Filesystem {
+//         Filesystem {
+//             layers: self.layers,
+//             root: self.root,
+//         }
+//     }
+// }
 
-#[cfg(not(target_arch = "wasm32"))]
+// #[cfg(not(target_arch = "wasm32"))]
 impl Builder {
     pub fn new<R>(root: R) -> Self
     where
