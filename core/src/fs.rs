@@ -167,6 +167,17 @@ impl TryFrom<http::HeaderMap> for IncomingFileMeta {
     }
 }
 
+#[cfg(feature = "axum")]
+impl Into<axum::http::StatusCode> for Error {
+    fn into(self) -> axum::http::StatusCode {
+        match self {
+            Error::NotFound(..) => axum::http::StatusCode::NOT_FOUND,
+            Error::PermissionDenied(..) => axum::http::StatusCode::FORBIDDEN,
+            _ => axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     #[allow(dead_code)]
