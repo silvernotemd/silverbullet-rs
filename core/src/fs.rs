@@ -78,7 +78,9 @@ pub trait StreamExt {
 impl<S> StreamExt for S where S: futures::Stream {}
 
 #[allow(async_fn_in_trait)]
-#[async_trait(?Send)]
+// #[async_trait(?Send)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 pub trait ReadOnlyFilesystem {
     async fn list(&self) -> Result<Vec<FileMeta>>;
     async fn get(&self, path: &str) -> Result<(Stream, FileMeta)>;
@@ -86,7 +88,8 @@ pub trait ReadOnlyFilesystem {
 }
 
 #[allow(async_fn_in_trait)]
-#[async_trait(?Send)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 pub trait WritableFilesystem {
     async fn put(&self, path: &str, data: Stream, meta: IncomingFileMeta) -> Result<FileMeta>;
     async fn delete(&self, path: &str) -> Result<()>;
