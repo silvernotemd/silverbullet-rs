@@ -168,13 +168,20 @@ impl TryFrom<http::HeaderMap> for IncomingFileMeta {
 }
 
 #[cfg(feature = "axum")]
-impl Into<axum::http::StatusCode> for Error {
-    fn into(self) -> axum::http::StatusCode {
-        match self {
+impl From<Error> for axum::http::StatusCode {
+    fn from(value: Error) -> axum::http::StatusCode {
+        match value {
             Error::NotFound(..) => axum::http::StatusCode::NOT_FOUND,
             Error::PermissionDenied(..) => axum::http::StatusCode::FORBIDDEN,
             _ => axum::http::StatusCode::INTERNAL_SERVER_ERROR,
         }
+    }
+}
+
+#[cfg(feature = "axum")]
+impl axum::response::IntoResponse for Error {
+    fn into_response(self) -> axum::response::Response {
+        axum::http::StatusCode::from(self).into_response()
     }
 }
 
