@@ -12,6 +12,8 @@ pub mod embed;
 #[cfg(feature = "opendal")]
 pub mod opendal;
 
+mod utils;
+
 #[derive(Error, Debug)]
 pub enum Error {
     #[error("File not found: {0}")]
