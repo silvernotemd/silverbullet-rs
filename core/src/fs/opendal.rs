@@ -17,7 +17,8 @@ impl Filesystem {
     }
 }
 
-#[async_trait(?Send)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 impl ReadOnlyFilesystem for Filesystem {
     async fn list(&self) -> Result<Vec<FileMeta>> {
         Ok(self
@@ -40,7 +41,10 @@ impl ReadOnlyFilesystem for Filesystem {
             .into_bytes_stream(..)
             .await?;
 
-        Ok((box_stream(stream), (path, stat).into()))
+        use crate::fs::StreamExt;
+
+        Ok((stream.into_boxed(), (path, stat).into()))
+        // Ok((box_stream(stream), (path, stat).into()))
     }
 
     async fn meta(&self, path: &str) -> Result<FileMeta> {
@@ -50,7 +54,8 @@ impl ReadOnlyFilesystem for Filesystem {
     }
 }
 
-#[async_trait(?Send)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 impl WritableFilesystem for Filesystem {
     async fn put(&self, path: &str, mut data: Stream, meta: IncomingFileMeta) -> Result<FileMeta> {
         let mut options = ::opendal::options::WriteOptions {

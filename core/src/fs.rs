@@ -12,6 +12,9 @@ pub mod embed;
 #[cfg(feature = "opendal")]
 pub mod opendal;
 
+#[cfg(any(feature = "embed", feature = "opendal"))]
+mod utils;
+
 #[derive(Error, Debug)]
 pub enum Error {
     #[error("File not found: {0}")]
@@ -29,38 +32,15 @@ pub enum Error {
 
 pub type Result<T> = std::result::Result<T, Error>;
 
-#[cfg(target_arch = "wasm32")]
-pub type Stream =
-    futures::stream::LocalBoxStream<'static, std::result::Result<Bytes, std::io::Error>>;
-
-#[cfg(target_arch = "wasm32")]
-fn box_stream<S>(stream: S) -> Stream
-where
-    S: futures::Stream<Item = std::result::Result<Bytes, std::io::Error>> + 'static,
-{
-    stream.boxed_local()
-}
-
-#[cfg(target_arch = "wasm32")]
-pub trait StreamExt {
-    fn into_boxed(self) -> Stream
-    where
-        Self: Sized + futures::Stream<Item = std::result::Result<Bytes, std::io::Error>> + 'static,
-    {
-        box_stream(self)
-    }
-}
-
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(any(
+    not(target_arch = "wasm32"),
+    all(target_arch = "wasm32", feature = "unsafe")
+))]
 pub type Stream = futures::stream::BoxStream<'static, std::result::Result<Bytes, std::io::Error>>;
 
-#[cfg(not(target_arch = "wasm32"))]
-fn box_stream<S>(stream: S) -> Stream
-where
-    S: futures::Stream<Item = std::result::Result<Bytes, std::io::Error>> + Send + 'static,
-{
-    stream.boxed()
-}
+#[cfg(all(target_arch = "wasm32", not(feature = "unsafe")))]
+pub type Stream =
+    futures::stream::LocalBoxStream<'static, std::result::Result<Bytes, std::io::Error>>;
 
 #[cfg(not(target_arch = "wasm32"))]
 pub trait StreamExt {
@@ -71,23 +51,49 @@ pub trait StreamExt {
             + Send
             + 'static,
     {
-        box_stream(self)
+        self.boxed()
+    }
+}
+
+#[cfg(all(target_arch = "wasm32", feature = "unsafe"))]
+pub trait StreamExt {
+    fn into_boxed(self) -> Stream
+    where
+        Self: Sized + futures::Stream<Item = std::result::Result<Bytes, std::io::Error>> + 'static,
+    {
+        let local_stream = self.boxed_local();
+
+        // SAFETY: Only safe on single-threaded WASM environments
+        unsafe { std::mem::transmute(local_stream) }
+    }
+}
+
+#[cfg(all(target_arch = "wasm32", not(feature = "unsafe")))]
+pub trait StreamExt {
+    fn into_boxed(self) -> Stream
+    where
+        Self: Sized + futures::Stream<Item = std::result::Result<Bytes, std::io::Error>> + 'static,
+    {
+        self.boxed_local()
     }
 }
 
 impl<S> StreamExt for S where S: futures::Stream {}
 
 #[allow(async_fn_in_trait)]
-#[async_trait(?Send)]
-pub trait ReadOnlyFilesystem {
+// #[async_trait(?Send)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+pub trait ReadOnlyFilesystem: Send + Sync {
     async fn list(&self) -> Result<Vec<FileMeta>>;
     async fn get(&self, path: &str) -> Result<(Stream, FileMeta)>;
     async fn meta(&self, path: &str) -> Result<FileMeta>;
 }
 
 #[allow(async_fn_in_trait)]
-#[async_trait(?Send)]
-pub trait WritableFilesystem {
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+pub trait WritableFilesystem: Send + Sync {
     async fn put(&self, path: &str, data: Stream, meta: IncomingFileMeta) -> Result<FileMeta>;
     async fn delete(&self, path: &str) -> Result<()>;
 }
@@ -164,8 +170,81 @@ impl TryFrom<http::HeaderMap> for IncomingFileMeta {
     }
 }
 
-#[cfg(all(test, feature = "http"))]
+#[cfg(feature = "axum")]
+impl<S> axum::extract::FromRequestParts<S> for IncomingFileMeta
+where
+    S: Send + Sync,
+{
+    type Rejection = axum::http::StatusCode;
+
+    async fn from_request_parts(
+        parts: &mut axum::http::request::Parts,
+        _: &S,
+    ) -> std::result::Result<Self, Self::Rejection> {
+        IncomingFileMeta::try_from(parts.headers.clone())
+            .map_err(|_| axum::http::StatusCode::BAD_REQUEST)
+    }
+}
+
+#[cfg(feature = "axum")]
+impl From<Error> for axum::http::StatusCode {
+    fn from(value: Error) -> axum::http::StatusCode {
+        match value {
+            Error::NotFound(..) => axum::http::StatusCode::NOT_FOUND,
+            Error::PermissionDenied(..) => axum::http::StatusCode::FORBIDDEN,
+            _ => axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+        }
+    }
+}
+
+#[cfg(feature = "axum")]
+impl axum::response::IntoResponse for Error {
+    fn into_response(self) -> axum::response::Response {
+        axum::http::StatusCode::from(self).into_response()
+    }
+}
+
+#[cfg(feature = "axum")]
+impl From<Error> for axum::response::Response {
+    fn from(err: Error) -> Self {
+        use axum::response::IntoResponse;
+
+        err.into_response()
+    }
+}
+
+#[cfg(test)]
 mod tests {
+    #[allow(dead_code)]
+    fn assert_send_sync<T: Send + Sync>() {}
+
+    #[test]
+    #[cfg(all(not(target_arch = "wasm32"), feature = "opendal"))]
+    fn opendal_filesystem_is_send_sync() {
+        assert_send_sync::<crate::fs::opendal::Filesystem>();
+    }
+
+    #[test]
+    #[cfg(not(target_arch = "wasm32"))]
+    fn layer_filesystem_is_send_sync() {
+        assert_send_sync::<crate::fs::layer::Filesystem>();
+    }
+
+    #[test]
+    #[cfg(all(not(target_arch = "wasm32"), feature = "embed"))]
+    fn embed_filesystem_is_send_sync() {
+        use rust_embed::Embed;
+
+        #[derive(Embed)]
+        #[folder = "src"]
+        struct TestEmbed;
+
+        assert_send_sync::<crate::fs::embed::Filesystem<TestEmbed>>();
+    }
+}
+
+#[cfg(all(test, feature = "http"))]
+mod http_tests {
     use super::*;
 
     #[test]
