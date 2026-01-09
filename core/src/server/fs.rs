@@ -98,7 +98,7 @@ where
 {
     let stream: Stream = body
         .into_data_stream()
-        .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))
+        .map_err(std::io::Error::other)
         .into_boxed();
 
     let meta = fs.put(&path, stream, incoming_meta).await?;

@@ -48,6 +48,13 @@ pub struct LogEntry {
 pub struct TracingLogger;
 
 #[cfg(feature = "tracing")]
+impl Default for TracingLogger {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[cfg(feature = "tracing")]
 impl TracingLogger {
     pub fn new() -> Self {
         TracingLogger

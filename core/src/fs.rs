@@ -181,8 +181,8 @@ where
         parts: &mut axum::http::request::Parts,
         _: &S,
     ) -> std::result::Result<Self, Self::Rejection> {
-        Ok(IncomingFileMeta::try_from(parts.headers.clone())
-            .map_err(|_| axum::http::StatusCode::BAD_REQUEST)?)
+        IncomingFileMeta::try_from(parts.headers.clone())
+            .map_err(|_| axum::http::StatusCode::BAD_REQUEST)
     }
 }
 
