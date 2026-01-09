@@ -47,6 +47,7 @@ where
 //         .with_state(state)
 // }
 
+#[cfg_attr(feature = "cloudflare", worker::send)]
 pub async fn list<F>(Filesystem(fs): Filesystem<F>) -> Result<impl IntoResponse, fs::Error>
 where
     F: ReadOnlyFilesystem,
