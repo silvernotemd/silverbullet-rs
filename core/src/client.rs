@@ -1,5 +1,11 @@
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "tracing")]
+mod tracing;
+
+#[cfg(feature = "tracing")]
+pub use tracing::*;
+
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Config {
@@ -42,49 +48,4 @@ pub struct LogEntry {
     pub level: String,
     pub message: String,
     pub timestamp: i64,
-}
-
-#[cfg(feature = "tracing")]
-pub struct TracingLogger;
-
-#[cfg(feature = "tracing")]
-impl Default for TracingLogger {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-#[cfg(feature = "tracing")]
-impl TracingLogger {
-    pub fn new() -> Self {
-        TracingLogger
-    }
-}
-
-#[cfg(feature = "tracing")]
-macro_rules! tracing_log_entry {
-    ($level:expr, $entry:expr) => {
-        tracing::event!(
-            target: "client",
-            $level,
-            message = $entry.message,
-            timestamp = $entry.timestamp,
-        )
-    };
-}
-
-#[cfg(feature = "tracing")]
-impl Logger for TracingLogger {
-    fn log(&self, _client_ip: String, entries: Vec<LogEntry>) {
-        for entry in entries {
-            match entry.level.to_lowercase().as_str() {
-                "trace" => tracing_log_entry!(tracing::Level::TRACE, entry),
-                "debug" => tracing_log_entry!(tracing::Level::DEBUG, entry),
-                "info" => tracing_log_entry!(tracing::Level::INFO, entry),
-                "warn" => tracing_log_entry!(tracing::Level::WARN, entry),
-                "error" => tracing_log_entry!(tracing::Level::ERROR, entry),
-                _ => tracing_log_entry!(tracing::Level::INFO, entry),
-            }
-        }
-    }
 }
