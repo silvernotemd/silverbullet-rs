@@ -12,6 +12,7 @@ pub mod embed;
 #[cfg(feature = "opendal")]
 pub mod opendal;
 
+#[cfg(any(feature = "embed", feature = "opendal"))]
 mod utils;
 
 #[derive(Error, Debug)]
