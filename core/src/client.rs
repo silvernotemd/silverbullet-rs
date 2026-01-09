@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Config {
     pub space_folder_path: String,
@@ -10,7 +10,7 @@ pub struct Config {
     pub enable_client_encryption: bool,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Manifest {
     pub short_name: String,
     pub name: String,
@@ -24,7 +24,7 @@ pub struct Manifest {
     pub description: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct ManifestIcon {
     pub src: String,
     #[serde(rename = "type")]
