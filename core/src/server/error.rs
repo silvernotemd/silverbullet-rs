@@ -5,6 +5,7 @@ pub struct Error(Box<dyn std::error::Error + Send + Sync>);
 
 impl IntoResponse for Error {
     fn into_response(self) -> Response {
+        #[cfg(feature = "tracing")]
         tracing::error!(error = %self.0, error.source = ?self.0.source(), "Internal server error");
 
         StatusCode::INTERNAL_SERVER_ERROR.into_response()
