@@ -37,15 +37,15 @@ where
     }
 }
 
-pub fn router<S>(state: S) -> Router
-where
-    S: FilesystemProvider + Clone + Send + Sync + 'static,
-{
-    Router::<S>::new()
-        .route("/.fs", routing::get(list))
-        .route("/.fs/{*path}", routing::get(get).put(put).options(options))
-        .with_state(state)
-}
+// pub fn router<S>(state: S) -> Router
+// where
+//     S: FilesystemProvider + Clone + Send + Sync + 'static,
+// {
+//     Router::<S>::new()
+//         .route("/.fs", routing::get(list))
+//         .route("/.fs/{*path}", routing::get(get).put(put).options(options))
+//         .with_state(state)
+// }
 
 pub async fn list<F>(Filesystem(fs): Filesystem<F>) -> Result<impl IntoResponse, fs::Error>
 where
