@@ -53,6 +53,8 @@ where
 {
     let files = fs.list().await.map(|mut files| {
         files.sort_by(|a, b| a.name.cmp(&b.name));
+
+        files
     })?;
 
     Ok(Json(files))
