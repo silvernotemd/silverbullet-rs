@@ -42,8 +42,8 @@ where
     S: FilesystemProvider + Clone + Send + Sync + 'static,
 {
     Router::<S>::new()
-        .route("/.fs", routing::get(list))
-        .route("/.fs/{*path}", routing::get(get).put(put).options(options))
+        .route("/", routing::get(list))
+        .route("/{*path}", routing::get(get).put(put).options(options))
 }
 
 #[cfg_attr(feature = "cloudflare", worker::send)]
