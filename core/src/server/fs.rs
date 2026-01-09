@@ -59,6 +59,7 @@ where
     Ok(Json(files))
 }
 
+#[cfg_attr(feature = "cloudflare", worker::send)]
 pub async fn get<F>(
     Filesystem(fs): Filesystem<F>,
     Path(path): Path<String>,
@@ -84,6 +85,7 @@ where
     Ok((HeaderMap::try_from(meta).map_err(Error::from)?, body))
 }
 
+#[cfg_attr(feature = "cloudflare", worker::send)]
 pub async fn put<F>(
     Filesystem(fs): Filesystem<F>,
     Path(path): Path<String>,
