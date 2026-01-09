@@ -1,5 +1,5 @@
 [workspace]
-members = ["core", "server"]
+members = ["silverbullet", "silverbullet-server"]
 resolver = "2"
 
 [workspace.package]
@@ -11,7 +11,7 @@ repository = "https://github.com/silvernotemd/silverbullet-rs"
 homepage = "https://github.com/silvernotemd/silverbullet-rs"
 
 [workspace.dependencies]
-silverbullet = { path = "core" }
+silverbullet = { path = "silverbullet" }
 
 [workspace.metadata.release]
 publish = false
