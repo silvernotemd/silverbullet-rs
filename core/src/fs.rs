@@ -170,6 +170,22 @@ impl TryFrom<http::HeaderMap> for IncomingFileMeta {
 }
 
 #[cfg(feature = "axum")]
+impl<S> axum::extract::FromRequestParts<S> for IncomingFileMeta
+where
+    S: Send + Sync,
+{
+    type Rejection = axum::http::StatusCode;
+
+    async fn from_request_parts(
+        parts: &mut axum::http::request::Parts,
+        _: &S,
+    ) -> std::result::Result<Self, Self::Rejection> {
+        Ok(IncomingFileMeta::try_from(parts.headers.clone())
+            .map_err(|_| axum::http::StatusCode::BAD_REQUEST)?)
+    }
+}
+
+#[cfg(feature = "axum")]
 impl From<Error> for axum::http::StatusCode {
     fn from(value: Error) -> axum::http::StatusCode {
         match value {
@@ -184,6 +200,15 @@ impl From<Error> for axum::http::StatusCode {
 impl axum::response::IntoResponse for Error {
     fn into_response(self) -> axum::response::Response {
         axum::http::StatusCode::from(self).into_response()
+    }
+}
+
+#[cfg(feature = "axum")]
+impl From<Error> for axum::response::Response {
+    fn from(err: Error) -> Self {
+        use axum::response::IntoResponse;
+
+        err.into_response()
     }
 }
 
