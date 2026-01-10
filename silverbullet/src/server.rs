@@ -4,9 +4,8 @@ use axum::{Router, routing};
 pub use error::*;
 
 use crate::client;
-use crate::server::fs::FilesystemProvider;
+use crate::server::routes::fs::FilesystemProvider;
 
-pub mod fs;
 pub mod routes;
 
 pub fn router<S>() -> Router<S>
@@ -15,7 +14,7 @@ where
     client::Config: FromRef<S>,
 {
     Router::<S>::new()
-        .nest("/.fs", fs::router())
+        .nest("/.fs", routes::fs::router())
         .route("/.shell", routing::post(routes::shell))
         .route("/.ping", routing::get(routes::ping))
         .route("/.logs", routing::post(routes::log))

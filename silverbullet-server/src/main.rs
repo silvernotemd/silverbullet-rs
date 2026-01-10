@@ -16,7 +16,7 @@ impl AppState {
     }
 }
 
-impl server::fs::FilesystemProvider for AppState {
+impl server::routes::fs::FilesystemProvider for AppState {
     type Fs = Filesystem;
 
     fn create_fs(&self, _parts: &mut Parts) -> Result<Self::Fs, server::Error> {

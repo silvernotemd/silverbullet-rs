@@ -1,3 +1,5 @@
+pub mod fs;
+
 use axum::Json;
 use axum::response::IntoResponse;
 use http::HeaderMap;
