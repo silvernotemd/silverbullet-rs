@@ -83,7 +83,7 @@ impl From<(&str, rust_embed::EmbeddedFile)> for FileMeta {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use futures::{StreamExt, executor::block_on};
+    use futures::StreamExt;
     use rust_embed::Embed;
 
     // Embed a single known file for testing
@@ -91,46 +91,46 @@ mod tests {
     #[folder = "src/fs/"]
     struct TestEmbed;
 
-    #[test]
-    fn list_returns_embedded_files() {
+    #[tokio::test]
+    async fn list_returns_embedded_files() {
         let fs: Filesystem<TestEmbed> = Filesystem::new();
 
-        let files = block_on(fs.list()).unwrap();
+        let files = fs.list().await.unwrap();
 
         assert!(!files.is_empty());
         assert!(files.iter().any(|f| f.name == "embed.rs"));
         assert!(files.iter().all(|f| f.perm == "ro"));
     }
 
-    #[test]
-    fn get_returns_file_content_and_meta() {
+    #[tokio::test]
+    async fn get_returns_file_content_and_meta() {
         let fs: Filesystem<TestEmbed> = Filesystem::new();
 
-        let (stream, meta) = block_on(fs.get("embed.rs")).unwrap();
+        let (stream, meta) = fs.get("embed.rs").await.unwrap();
 
         assert_eq!(meta.name, "embed.rs");
         assert_eq!(meta.perm, "ro");
         assert!(meta.size > 0);
 
-        let bytes: Vec<_> = block_on(stream.collect());
+        let bytes: Vec<_> = stream.collect().await;
         let content = String::from_utf8(bytes[0].as_ref().unwrap().to_vec()).unwrap();
         assert!(content.contains("pub struct Filesystem"));
     }
 
-    #[test]
-    fn get_nonexistent_file_returns_not_found() {
+    #[tokio::test]
+    async fn get_nonexistent_file_returns_not_found() {
         let fs: Filesystem<TestEmbed> = Filesystem::new();
 
-        let result = block_on(fs.get("nonexistent.rs"));
+        let result = fs.get("nonexistent.rs").await;
 
         assert!(matches!(result, Err(Error::NotFound(_))));
     }
 
-    #[test]
-    fn meta_returns_file_metadata() {
+    #[tokio::test]
+    async fn meta_returns_file_metadata() {
         let fs: Filesystem<TestEmbed> = Filesystem::new();
 
-        let meta = block_on(fs.meta("embed.rs")).unwrap();
+        let meta = fs.meta("embed.rs").await.unwrap();
 
         assert_eq!(meta.name, "embed.rs");
         assert_eq!(meta.perm, "ro");
@@ -138,11 +138,11 @@ mod tests {
         assert_eq!(meta.content_type, "text/x-rust");
     }
 
-    #[test]
-    fn meta_nonexistent_file_returns_not_found() {
+    #[tokio::test]
+    async fn meta_nonexistent_file_returns_not_found() {
         let fs: Filesystem<TestEmbed> = Filesystem::new();
 
-        let result = block_on(fs.meta("nonexistent.rs"));
+        let result = fs.meta("nonexistent.rs").await;
 
         assert!(matches!(result, Err(Error::NotFound(_))));
     }

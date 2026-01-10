@@ -36,3 +36,6 @@ minijinja = ["dep:minijinja"]
 server = ["axum"]
 tracing = ["dep:tracing"]
 unsafe = []
+
+[dev-dependencies]
+tokio = { version = "1", features = ["rt", "macros"] }

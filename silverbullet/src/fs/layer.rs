@@ -119,7 +119,6 @@ impl WritableFilesystem for Filesystem {
 mod tests {
     use super::*;
     use bytes::Bytes;
-    use futures::executor::block_on;
     use futures::stream;
     use std::collections::HashMap;
     use std::sync::RwLock;
@@ -227,162 +226,142 @@ mod tests {
         }
     }
 
-    #[test]
-    fn get_returns_from_root_when_no_layers() {
-        block_on(async {
-            let fs =
-                Filesystem::builder(MemoryFs::new().with_file("test.txt", b"root content")).build();
+    #[tokio::test]
+    async fn get_returns_from_root_when_no_layers() {
+        let fs =
+            Filesystem::builder(MemoryFs::new().with_file("test.txt", b"root content")).build();
 
-            let (stream, meta) = fs.get("test.txt").await.unwrap();
-            let content = read_stream(stream).await;
+        let (stream, meta) = fs.get("test.txt").await.unwrap();
+        let content = read_stream(stream).await;
 
-            assert_eq!(meta.name, "test.txt");
-            assert_eq!(content, b"root content");
-        });
+        assert_eq!(meta.name, "test.txt");
+        assert_eq!(content, b"root content");
     }
 
-    #[test]
-    fn get_returns_from_layer_over_root() {
-        block_on(async {
-            let root = MemoryFs::new().with_file("test.txt", b"root content");
-            let layer = MemoryFs::new().with_file("test.txt", b"layer content");
+    #[tokio::test]
+    async fn get_returns_from_layer_over_root() {
+        let root = MemoryFs::new().with_file("test.txt", b"root content");
+        let layer = MemoryFs::new().with_file("test.txt", b"layer content");
 
-            let fs = Filesystem::builder(root).layer(layer).build();
+        let fs = Filesystem::builder(root).layer(layer).build();
 
-            let (stream, _) = fs.get("test.txt").await.unwrap();
-            let content = read_stream(stream).await;
+        let (stream, _) = fs.get("test.txt").await.unwrap();
+        let content = read_stream(stream).await;
 
-            assert_eq!(content, b"layer content");
-        });
+        assert_eq!(content, b"layer content");
     }
 
-    #[test]
-    fn get_last_layer_has_highest_priority() {
-        block_on(async {
-            let root = MemoryFs::new().with_file("test.txt", b"root");
-            let layer1 = MemoryFs::new().with_file("test.txt", b"layer1");
-            let layer2 = MemoryFs::new().with_file("test.txt", b"layer2");
+    #[tokio::test]
+    async fn get_last_layer_has_highest_priority() {
+        let root = MemoryFs::new().with_file("test.txt", b"root");
+        let layer1 = MemoryFs::new().with_file("test.txt", b"layer1");
+        let layer2 = MemoryFs::new().with_file("test.txt", b"layer2");
 
-            let fs = Filesystem::builder(root)
-                .layer(layer1)
-                .layer(layer2)
-                .build();
+        let fs = Filesystem::builder(root)
+            .layer(layer1)
+            .layer(layer2)
+            .build();
 
-            let (stream, _) = fs.get("test.txt").await.unwrap();
-            let content = read_stream(stream).await;
+        let (stream, _) = fs.get("test.txt").await.unwrap();
+        let content = read_stream(stream).await;
 
-            assert_eq!(content, b"layer2");
-        });
+        assert_eq!(content, b"layer2");
     }
 
-    #[test]
-    fn get_falls_through_to_root_when_not_in_layer() {
-        block_on(async {
-            let root = MemoryFs::new().with_file("root-only.txt", b"root content");
-            let layer = MemoryFs::new().with_file("layer-only.txt", b"layer content");
+    #[tokio::test]
+    async fn get_falls_through_to_root_when_not_in_layer() {
+        let root = MemoryFs::new().with_file("root-only.txt", b"root content");
+        let layer = MemoryFs::new().with_file("layer-only.txt", b"layer content");
 
-            let fs = Filesystem::builder(root).layer(layer).build();
+        let fs = Filesystem::builder(root).layer(layer).build();
 
-            let (stream, _) = fs.get("root-only.txt").await.unwrap();
-            assert_eq!(read_stream(stream).await, b"root content");
+        let (stream, _) = fs.get("root-only.txt").await.unwrap();
+        assert_eq!(read_stream(stream).await, b"root content");
 
-            let (stream, _) = fs.get("layer-only.txt").await.unwrap();
-            assert_eq!(read_stream(stream).await, b"layer content");
-        });
+        let (stream, _) = fs.get("layer-only.txt").await.unwrap();
+        assert_eq!(read_stream(stream).await, b"layer content");
     }
 
-    #[test]
-    fn list_merges_files_from_all_sources() {
-        block_on(async {
-            let root = MemoryFs::new().with_file("a.txt", b"");
-            let layer = MemoryFs::new().with_file("b.txt", b"");
+    #[tokio::test]
+    async fn list_merges_files_from_all_sources() {
+        let root = MemoryFs::new().with_file("a.txt", b"");
+        let layer = MemoryFs::new().with_file("b.txt", b"");
 
-            let fs = Filesystem::builder(root).layer(layer).build();
+        let fs = Filesystem::builder(root).layer(layer).build();
 
-            let files = fs.list().await.unwrap();
-            let names: Vec<_> = files.iter().map(|f| f.name.as_str()).collect();
+        let files = fs.list().await.unwrap();
+        let names: Vec<_> = files.iter().map(|f| f.name.as_str()).collect();
 
-            assert_eq!(names, vec!["a.txt", "b.txt"]);
-        });
+        assert_eq!(names, vec!["a.txt", "b.txt"]);
     }
 
-    #[test]
-    fn list_returns_sorted_results() {
-        block_on(async {
-            let root = MemoryFs::new()
-                .with_file("zebra.txt", b"")
-                .with_file("alpha.txt", b"")
-                .with_file("mango.txt", b"");
+    #[tokio::test]
+    async fn list_returns_sorted_results() {
+        let root = MemoryFs::new()
+            .with_file("zebra.txt", b"")
+            .with_file("alpha.txt", b"")
+            .with_file("mango.txt", b"");
 
-            let fs = Filesystem::builder(root).build();
+        let fs = Filesystem::builder(root).build();
 
-            let files = fs.list().await.unwrap();
-            let names: Vec<_> = files.iter().map(|f| f.name.as_str()).collect();
+        let files = fs.list().await.unwrap();
+        let names: Vec<_> = files.iter().map(|f| f.name.as_str()).collect();
 
-            assert_eq!(names, vec!["alpha.txt", "mango.txt", "zebra.txt"]);
-        });
+        assert_eq!(names, vec!["alpha.txt", "mango.txt", "zebra.txt"]);
     }
 
-    #[test]
-    fn list_layer_file_shadows_root_file() {
-        block_on(async {
-            let root = MemoryFs::new().with_file("test.txt", b"small");
-            let layer = MemoryFs::new().with_file("test.txt", b"much larger content");
+    #[tokio::test]
+    async fn list_layer_file_shadows_root_file() {
+        let root = MemoryFs::new().with_file("test.txt", b"small");
+        let layer = MemoryFs::new().with_file("test.txt", b"much larger content");
 
-            let fs = Filesystem::builder(root).layer(layer).build();
+        let fs = Filesystem::builder(root).layer(layer).build();
 
-            let files = fs.list().await.unwrap();
+        let files = fs.list().await.unwrap();
 
-            assert_eq!(files.len(), 1);
-            assert_eq!(files[0].size, 19); // layer's size
-        });
+        assert_eq!(files.len(), 1);
+        assert_eq!(files[0].size, 19); // layer's size
     }
 
-    #[test]
-    fn write_goes_to_root() {
-        block_on(async {
-            let root = MemoryFs::new();
-            let layer = MemoryFs::new();
+    #[tokio::test]
+    async fn write_goes_to_root() {
+        let root = MemoryFs::new();
+        let layer = MemoryFs::new();
 
-            let fs = Filesystem::builder(root).layer(layer).build();
+        let fs = Filesystem::builder(root).layer(layer).build();
 
-            let data = stream::once(async { Ok(Bytes::from("new content")) }).boxed();
-            fs.put("new.txt", data, IncomingFileMeta::default())
-                .await
-                .unwrap();
+        let data = stream::once(async { Ok(Bytes::from("new content")) }).boxed();
+        fs.put("new.txt", data, IncomingFileMeta::default())
+            .await
+            .unwrap();
 
-            // Should be readable (from root)
-            let (stream, _) = fs.get("new.txt").await.unwrap();
-            assert_eq!(read_stream(stream).await, b"new content");
-        });
+        // Should be readable (from root)
+        let (stream, _) = fs.get("new.txt").await.unwrap();
+        assert_eq!(read_stream(stream).await, b"new content");
     }
 
-    #[test]
-    fn delete_removes_from_root() {
-        block_on(async {
-            let root = MemoryFs::new().with_file("test.txt", b"content");
-            let fs = Filesystem::builder(root).build();
+    #[tokio::test]
+    async fn delete_removes_from_root() {
+        let root = MemoryFs::new().with_file("test.txt", b"content");
+        let fs = Filesystem::builder(root).build();
 
-            fs.delete("test.txt").await.unwrap();
+        fs.delete("test.txt").await.unwrap();
 
-            assert!(fs.get("test.txt").await.is_err());
-        });
+        assert!(fs.get("test.txt").await.is_err());
     }
 
-    #[test]
-    fn delete_does_not_affect_layer_file() {
-        block_on(async {
-            let root = MemoryFs::new().with_file("test.txt", b"root");
-            let layer = MemoryFs::new().with_file("test.txt", b"layer");
+    #[tokio::test]
+    async fn delete_does_not_affect_layer_file() {
+        let root = MemoryFs::new().with_file("test.txt", b"root");
+        let layer = MemoryFs::new().with_file("test.txt", b"layer");
 
-            let fs = Filesystem::builder(root).layer(layer).build();
+        let fs = Filesystem::builder(root).layer(layer).build();
 
-            // Delete from root - layer file should still be visible
-            fs.delete("test.txt").await.unwrap();
+        // Delete from root - layer file should still be visible
+        fs.delete("test.txt").await.unwrap();
 
-            let (stream, _) = fs.get("test.txt").await.unwrap();
-            assert_eq!(read_stream(stream).await, b"layer");
-        });
+        let (stream, _) = fs.get("test.txt").await.unwrap();
+        assert_eq!(read_stream(stream).await, b"layer");
     }
 
     async fn read_stream(stream: Stream) -> Vec<u8> {

@@ -1210,6 +1210,7 @@ dependencies = [
  "rust-embed",
  "serde",
  "thiserror",
+ "tokio",
  "tracing",
  "web-time",
  "worker",
