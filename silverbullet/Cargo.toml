@@ -38,4 +38,5 @@ tracing = ["dep:tracing"]
 unsafe = []
 
 [dev-dependencies]
+opendal = { version = "0.55.0", default-features = false, features = ["services-memory"] }
 tokio = { version = "1", features = ["rt", "macros"] }
