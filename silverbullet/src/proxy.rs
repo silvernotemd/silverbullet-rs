@@ -224,8 +224,14 @@ mod tests {
     #[test]
     fn test_filter_proxy_headers() {
         let mut headers = HeaderMap::new();
-        headers.insert("x-proxy-header-authorization", "Bearer token".parse().unwrap());
-        headers.insert("x-proxy-header-content-type", "application/json".parse().unwrap());
+        headers.insert(
+            "x-proxy-header-authorization",
+            "Bearer token".parse().unwrap(),
+        );
+        headers.insert(
+            "x-proxy-header-content-type",
+            "application/json".parse().unwrap(),
+        );
         headers.insert("regular-header", "should-be-filtered".parse().unwrap());
         headers.insert("X-Proxy-Header-Custom", "custom-value".parse().unwrap());
 
@@ -240,10 +246,16 @@ mod tests {
 
     #[test]
     fn test_adjust_scheme_localhost() {
-        assert_eq!(adjust_scheme("localhost:3000/path"), "http://localhost:3000/path");
+        assert_eq!(
+            adjust_scheme("localhost:3000/path"),
+            "http://localhost:3000/path"
+        );
         assert_eq!(adjust_scheme("127.0.0.1:8080"), "http://127.0.0.1:8080");
         assert_eq!(adjust_scheme("::1/path"), "http://::1/path");
-        assert_eq!(adjust_scheme("host.docker.internal"), "http://host.docker.internal");
+        assert_eq!(
+            adjust_scheme("host.docker.internal"),
+            "http://host.docker.internal"
+        );
     }
 
     #[test]
@@ -257,7 +269,10 @@ mod tests {
     #[test]
     fn test_adjust_scheme_public() {
         assert_eq!(adjust_scheme("example.com"), "https://example.com");
-        assert_eq!(adjust_scheme("api.github.com/repos"), "https://api.github.com/repos");
+        assert_eq!(
+            adjust_scheme("api.github.com/repos"),
+            "https://api.github.com/repos"
+        );
         assert_eq!(adjust_scheme("1.1.1.1"), "https://1.1.1.1");
     }
 
