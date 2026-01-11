@@ -9,7 +9,7 @@ repository = { workspace = true }
 publish = false
 
 [dependencies]
-silverbullet = { workspace = true, features = ["server", "reqwest", "opendal", "tracing"] }
+silverbullet = { workspace = true, features = ["server", "opendal", "tracing"] }
 
 axum = { version = "0.8.8", features = ["macros"] }
 http = "1.4.0"
