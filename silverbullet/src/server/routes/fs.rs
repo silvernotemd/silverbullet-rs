@@ -41,9 +41,10 @@ pub fn router<S>() -> Router<S>
 where
     S: Provider + Clone + Send + Sync + 'static,
 {
-    Router::<S>::new()
-        .route("/", routing::get(list))
-        .route("/{*path}", routing::get(get).put(put).options(options))
+    Router::<S>::new().route("/", routing::get(list)).route(
+        "/{*path}",
+        routing::get(get).put(put).delete(delete).options(options),
+    )
 }
 
 #[cfg_attr(feature = "cloudflare", worker::send)]
@@ -108,6 +109,20 @@ where
         AppendHeaders([("Cache-Control", "no-cache")]),
         Json(meta),
     ))
+}
+
+#[cfg_attr(feature = "cloudflare", worker::send)]
+pub async fn delete<F>(
+    Filesystem(fs): Filesystem<F>,
+    Path(path): Path<String>,
+) -> Result<impl IntoResponse, fs::Error>
+where
+    F: ReadWriteFilesystem,
+{
+    fs.delete(&path).await?;
+
+    // Returns 200 OK with body "OK" to match the original SilverBullet API.
+    Ok("OK")
 }
 
 pub async fn options() -> impl IntoResponse {
