@@ -112,7 +112,6 @@ pub struct FileMeta {
     pub size: u64,
 }
 
-#[cfg(feature = "http")]
 impl TryFrom<FileMeta> for http::HeaderMap {
     type Error = http::header::InvalidHeaderValue;
 
@@ -142,7 +141,6 @@ pub struct IncomingFileMeta {
     pub size: Option<u64>,
 }
 
-#[cfg(feature = "http")]
 impl TryFrom<http::HeaderMap> for IncomingFileMeta {
     type Error = Box<dyn std::error::Error>;
 
@@ -243,7 +241,7 @@ mod tests {
     }
 }
 
-#[cfg(all(test, feature = "http"))]
+#[cfg(test)]
 mod http_tests {
     use super::*;
 

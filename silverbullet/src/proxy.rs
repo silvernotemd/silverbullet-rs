@@ -154,6 +154,11 @@ fn filter_proxy_headers(headers: &HeaderMap) -> HeaderMap {
 }
 
 fn adjust_scheme(url: &str) -> String {
+    // Check for IPv6 localhost first (before splitting on ':')
+    if url.starts_with("::1") || url.starts_with("[::1]") {
+        return format!("http://{}", url);
+    }
+
     // Extract host from URL (before first / or :)
     let host = url
         .split('/')
@@ -167,7 +172,6 @@ fn adjust_scheme(url: &str) -> String {
     let use_http = host == "localhost"
         || host == "127.0.0.1"
         || host == "host.docker.internal"
-        || host == "::1" // IPv6 localhost
         || is_private_ip(host);
 
     if use_http {
@@ -210,5 +214,194 @@ impl Client for NoProxy {
         Err(Error::NotSupported(
             "Proxy feature not available".to_string(),
         ))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_filter_proxy_headers() {
+        let mut headers = HeaderMap::new();
+        headers.insert("x-proxy-header-authorization", "Bearer token".parse().unwrap());
+        headers.insert("x-proxy-header-content-type", "application/json".parse().unwrap());
+        headers.insert("regular-header", "should-be-filtered".parse().unwrap());
+        headers.insert("X-Proxy-Header-Custom", "custom-value".parse().unwrap());
+
+        let filtered = filter_proxy_headers(&headers);
+
+        assert_eq!(filtered.len(), 3);
+        assert_eq!(filtered.get("authorization").unwrap(), "Bearer token");
+        assert_eq!(filtered.get("content-type").unwrap(), "application/json");
+        assert_eq!(filtered.get("custom").unwrap(), "custom-value");
+        assert!(filtered.get("regular-header").is_none());
+    }
+
+    #[test]
+    fn test_adjust_scheme_localhost() {
+        assert_eq!(adjust_scheme("localhost:3000/path"), "http://localhost:3000/path");
+        assert_eq!(adjust_scheme("127.0.0.1:8080"), "http://127.0.0.1:8080");
+        assert_eq!(adjust_scheme("::1/path"), "http://::1/path");
+        assert_eq!(adjust_scheme("host.docker.internal"), "http://host.docker.internal");
+    }
+
+    #[test]
+    fn test_adjust_scheme_private_ips() {
+        assert_eq!(adjust_scheme("192.168.1.1"), "http://192.168.1.1");
+        assert_eq!(adjust_scheme("10.0.0.1"), "http://10.0.0.1");
+        assert_eq!(adjust_scheme("172.16.0.1"), "http://172.16.0.1");
+        assert_eq!(adjust_scheme("172.31.255.255"), "http://172.31.255.255");
+    }
+
+    #[test]
+    fn test_adjust_scheme_public() {
+        assert_eq!(adjust_scheme("example.com"), "https://example.com");
+        assert_eq!(adjust_scheme("api.github.com/repos"), "https://api.github.com/repos");
+        assert_eq!(adjust_scheme("1.1.1.1"), "https://1.1.1.1");
+    }
+
+    #[test]
+    fn test_is_private_ip() {
+        // Private ranges
+        assert!(is_private_ip("192.168.0.1"));
+        assert!(is_private_ip("192.168.255.255"));
+        assert!(is_private_ip("10.0.0.0"));
+        assert!(is_private_ip("10.255.255.255"));
+        assert!(is_private_ip("172.16.0.0"));
+        assert!(is_private_ip("172.31.255.255"));
+
+        // Public IPs
+        assert!(!is_private_ip("8.8.8.8"));
+        assert!(!is_private_ip("1.1.1.1"));
+        assert!(!is_private_ip("172.15.0.0"));
+        assert!(!is_private_ip("172.32.0.0"));
+        assert!(!is_private_ip("192.167.0.0"));
+    }
+
+    #[tokio::test]
+    async fn test_no_proxy_returns_not_supported() {
+        let client = NoProxy;
+        let request = Request::builder()
+            .uri("http://example.com")
+            .body(Bytes::new())
+            .unwrap();
+
+        let result = client.send(request).await;
+
+        assert!(result.is_err());
+        match result.unwrap_err() {
+            Error::NotSupported(msg) => {
+                assert_eq!(msg, "Proxy feature not available");
+            }
+            _ => panic!("Expected NotSupported error"),
+        }
+    }
+
+    // Mock client for testing Proxy
+    struct MockClient {
+        response: Response<Bytes>,
+    }
+
+    #[async_trait]
+    impl Client for MockClient {
+        async fn send(&self, _request: Request<Bytes>) -> Result<Response<Bytes>> {
+            Ok(self.response.clone())
+        }
+    }
+
+    #[tokio::test]
+    async fn test_proxy_url_extraction() {
+        let mock_response = Response::builder()
+            .status(StatusCode::OK)
+            .body(Bytes::from("response body"))
+            .unwrap();
+
+        let client = MockClient {
+            response: mock_response,
+        };
+        let proxy = Proxy::new(client);
+
+        let request = Request::builder()
+            .uri("/.proxy/example.com/api/endpoint?foo=bar")
+            .body(Bytes::new())
+            .unwrap();
+
+        let result = proxy.proxy(request).await;
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_proxy_header_filtering() {
+        let mock_response = Response::builder()
+            .status(StatusCode::OK)
+            .header("content-type", "application/json")
+            .header("x-custom", "value")
+            .body(Bytes::from("{}"))
+            .unwrap();
+
+        let client = MockClient {
+            response: mock_response,
+        };
+        let proxy = Proxy::new(client);
+
+        let request = Request::builder()
+            .uri("/.proxy/example.com")
+            .header("x-proxy-header-authorization", "Bearer token")
+            .header("regular-header", "filtered")
+            .body(Bytes::new())
+            .unwrap();
+
+        let response = proxy.proxy(request).await.unwrap();
+
+        // Check response has x-proxy-status-code
+        assert_eq!(
+            response.headers().get("x-proxy-status-code").unwrap(),
+            "200"
+        );
+
+        // Check response has prefixed headers
+        assert_eq!(
+            response.headers().get("x-proxy-header-x-custom").unwrap(),
+            "value"
+        );
+
+        // Check content-type is unprefixed
+        assert_eq!(
+            response.headers().get("content-type").unwrap(),
+            "application/json"
+        );
+
+        // Response should always be 200
+        assert_eq!(response.status(), StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn test_proxy_wraps_upstream_status() {
+        let mock_response = Response::builder()
+            .status(StatusCode::NOT_FOUND)
+            .body(Bytes::from("Not found"))
+            .unwrap();
+
+        let client = MockClient {
+            response: mock_response,
+        };
+        let proxy = Proxy::new(client);
+
+        let request = Request::builder()
+            .uri("/.proxy/example.com/missing")
+            .body(Bytes::new())
+            .unwrap();
+
+        let response = proxy.proxy(request).await.unwrap();
+
+        // Proxy always returns 200
+        assert_eq!(response.status(), StatusCode::OK);
+
+        // Actual status is in header
+        assert_eq!(
+            response.headers().get("x-proxy-status-code").unwrap(),
+            "404"
+        );
     }
 }

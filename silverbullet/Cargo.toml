@@ -13,8 +13,7 @@ async-trait = "0.1.89"
 axum = { version = "0.8.8", default-features = false, features = ["json"], optional = true }
 bytes = "1.11.0"
 futures = "0.3.31"
-http = { version = "1.4.0", optional = true }
-# http-body = { version = "1.0", optional = true }
+http = "1.4.0"
 http-body-util = { version = "0.1" }
 minijinja = { version = "2.14.0", optional = true }
 opendal = { version = "0.55.0", default-features = false, optional = true }
@@ -33,7 +32,6 @@ default = []
 axum = ["dep:axum"]
 cloudflare = ["dep:worker", "dep:worker-macros"]
 embed = ["dep:rust-embed", "dep:web-time"]
-http = ["dep:http"]
 reqwest = ["dep:reqwest"]
 proxy-cloudflare = ["cloudflare"]
 opendal = ["dep:opendal", "dep:web-time"]
