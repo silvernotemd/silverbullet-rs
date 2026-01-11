@@ -16,30 +16,30 @@ use crate::fs::{
 };
 use crate::server::error::Error;
 
-pub trait FilesystemProvider {
-    type Fs: ReadWriteFilesystem;
+pub trait Provider {
+    type Output: ReadWriteFilesystem;
 
-    fn create_fs(&self, parts: &mut Parts) -> Result<Self::Fs, Error>;
+    fn provide(&self, parts: &mut Parts) -> Result<Self::Output, Error>;
 }
 
 pub struct Filesystem<F>(pub F);
 
-impl<S> FromRequestParts<S> for Filesystem<S::Fs>
+impl<S> FromRequestParts<S> for Filesystem<S::Output>
 where
-    S: FilesystemProvider + Send + Sync,
+    S: Provider + Send + Sync,
 {
     type Rejection = Response;
 
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
         Ok(Filesystem(
-            state.create_fs(parts).map_err(|err| err.into_response())?,
+            state.provide(parts).map_err(|err| err.into_response())?,
         ))
     }
 }
 
 pub fn router<S>() -> Router<S>
 where
-    S: FilesystemProvider + Clone + Send + Sync + 'static,
+    S: Provider + Clone + Send + Sync + 'static,
 {
     Router::<S>::new()
         .route("/", routing::get(list))

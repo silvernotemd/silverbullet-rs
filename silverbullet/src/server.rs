@@ -4,13 +4,12 @@ use axum::{Router, routing};
 pub use error::*;
 
 use crate::client;
-use crate::server::routes::fs::FilesystemProvider;
 
 pub mod routes;
 
 pub fn router<S>() -> Router<S>
 where
-    S: FilesystemProvider + Clone + Send + Sync + 'static,
+    S: routes::fs::Provider + Clone + Send + Sync + 'static,
     client::Config: FromRef<S>,
 {
     Router::<S>::new()

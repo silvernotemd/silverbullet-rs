@@ -16,10 +16,10 @@ impl AppState {
     }
 }
 
-impl server::routes::fs::FilesystemProvider for AppState {
-    type Fs = Filesystem;
+impl server::routes::fs::Provider for AppState {
+    type Output = Filesystem;
 
-    fn create_fs(&self, _parts: &mut Parts) -> Result<Self::Fs, server::Error> {
+    fn provide(&self, _parts: &mut Parts) -> Result<Self::Output, server::Error> {
         Ok(Filesystem::new(self.operator.clone()))
     }
 }
