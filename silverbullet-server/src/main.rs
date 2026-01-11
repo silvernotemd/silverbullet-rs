@@ -1,7 +1,7 @@
 use axum::extract::FromRef;
 use http::request::Parts;
 use opendal::{Operator, services::Memory};
-use silverbullet::{client, fs::opendal::Filesystem, server, shell::NoShell};
+use silverbullet::{client, fs::opendal::Filesystem, proxy, server, shell::NoShell};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 #[derive(Clone, FromRef)]
@@ -29,6 +29,18 @@ impl server::routes::shell::Provider for AppState {
 
     fn provide(&self) -> Self::Output {
         NoShell::default()
+    }
+}
+
+impl server::routes::proxy::Provider for AppState {
+    #[cfg(feature = "proxy")]
+    type Output = proxy::reqwest::Client;
+
+    #[cfg(not(feature = "proxy"))]
+    type Output = proxy::NoProxy;
+
+    fn provide(&self) -> Self::Output {
+        Self::Output::default()
     }
 }
 

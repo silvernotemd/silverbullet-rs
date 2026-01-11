@@ -1,6 +1,7 @@
 pub mod fs;
 
 pub mod client;
+pub mod proxy;
 pub mod shell;
 pub mod ssr;
 

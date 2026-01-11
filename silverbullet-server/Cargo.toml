@@ -9,7 +9,7 @@ repository = { workspace = true }
 publish = false
 
 [dependencies]
-silverbullet = { workspace = true, features = ["server", "http", "opendal", "tracing"] }
+silverbullet = { workspace = true, features = ["server", "http", "reqwest", "opendal", "tracing"] }
 
 axum = { version = "0.8.8", features = ["macros"] }
 http = "1.4.0"
@@ -17,3 +17,6 @@ opendal = { version = "0.55.0", default-features = false, features = ["services-
 tokio = { version = "1", features = ["full"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[features]
+proxy = ["silverbullet/reqwest"]
