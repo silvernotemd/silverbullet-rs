@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [silverbullet, silverbullet-server]
+        target: ["", wasm32-unknown-unknown]
+        exclude:
+          - package: silverbullet-server
+            target: wasm32-unknown-unknown
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Set up Rust
+        uses: ./.github/actions/rust/
+
+      - name: Build
+        run: cargo build --release -p ${{ matrix.package }} ${{ matrix.target && format('--target {0}', matrix.target) }}
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [silverbullet, silverbullet-server]
+        target: ["", wasm32-unknown-unknown]
+        exclude:
+          - package: silverbullet-server
+            target: wasm32-unknown-unknown
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Set up Rust
+        uses: ./.github/actions/rust/
+
+      - name: Run tests
+        run: cargo test -p ${{ matrix.package }} ${{ matrix.target && format('--target {0}', matrix.target) }}
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [silverbullet, silverbullet-server]
+        target: ["", wasm32-unknown-unknown]
+        exclude:
+          - package: silverbullet-server
+            target: wasm32-unknown-unknown
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Set up Rust
+        uses: ./.github/actions/rust/
+
+      - name: Run fmt
+        run: cargo fmt -- --check
+
+      - name: Run clippy
+        run: cargo clippy -p ${{ matrix.package }} ${{ matrix.target && format('--target {0}', matrix.target) }}
