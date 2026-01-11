@@ -25,6 +25,7 @@ pub struct Response {
     pub stderr: String,
 }
 
+#[derive(Debug, Default, Clone)]
 pub struct NoShell {}
 
 impl Handler for NoShell {

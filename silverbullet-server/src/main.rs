@@ -1,7 +1,7 @@
 use axum::extract::FromRef;
 use http::request::Parts;
 use opendal::{Operator, services::Memory};
-use silverbullet::{client, fs::opendal::Filesystem, server};
+use silverbullet::{client, fs::opendal::Filesystem, server, shell::NoShell};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 #[derive(Clone, FromRef)]
@@ -21,6 +21,14 @@ impl server::routes::fs::Provider for AppState {
 
     fn provide(&self, _parts: &mut Parts) -> Result<Self::Output, server::Error> {
         Ok(Filesystem::new(self.operator.clone()))
+    }
+}
+
+impl server::routes::shell::ShellProvider for AppState {
+    type Shell = NoShell;
+
+    fn shell(&self) -> Self::Shell {
+        NoShell {}
     }
 }
 
