@@ -29,6 +29,10 @@ jobs:
       - name: Set up Rust
         uses: ./.github/actions/rust/
 
+      - name: Install wasm target
+        run: rustup target add ${{ matrix.target }}
+        if: matrix.target != ''
+
       - name: Build
         run: cargo build --release -p ${{ matrix.package }} ${{ matrix.target && format('--target {0}', matrix.target) }}
 
@@ -52,6 +56,10 @@ jobs:
       - name: Set up Rust
         uses: ./.github/actions/rust/
 
+      - name: Install wasm target
+        run: rustup target add ${{ matrix.target }}
+        if: matrix.target != ''
+
       - name: Run tests
         run: cargo test -p ${{ matrix.package }} ${{ matrix.target && format('--target {0}', matrix.target) }}
 
@@ -74,6 +82,10 @@ jobs:
 
       - name: Set up Rust
         uses: ./.github/actions/rust/
+
+      - name: Install wasm target
+        run: rustup target add ${{ matrix.target }}
+        if: matrix.target != ''
 
       - name: Run fmt
         run: cargo fmt -- --check
