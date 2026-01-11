@@ -15,7 +15,6 @@ bytes = "1.11.0"
 futures = "0.3.31"
 http = "1.4.0"
 http-body-util = { version = "0.1" }
-minijinja = { version = "2.14.0", optional = true }
 opendal = { version = "0.55.0", default-features = false, optional = true }
 reqwest = { version = "0.12", default-features = false, features = ["stream", "rustls-tls"], optional = true }
 serde = { version = "1.0.228", features = ["derive"] }
@@ -35,7 +34,6 @@ embed = ["dep:rust-embed", "dep:web-time"]
 reqwest = ["dep:reqwest"]
 proxy-cloudflare = ["cloudflare"]
 opendal = ["dep:opendal", "dep:web-time"]
-minijinja = ["dep:minijinja"]
 server = ["axum"]
 tracing = ["dep:tracing"]
 unsafe = []
