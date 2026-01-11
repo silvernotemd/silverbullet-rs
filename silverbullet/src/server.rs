@@ -9,7 +9,7 @@ pub mod routes;
 
 pub fn router<S>() -> Router<S>
 where
-    S: routes::fs::Provider + routes::shell::ShellProvider + Clone + Send + Sync + 'static,
+    S: routes::fs::Provider + routes::shell::Provider + Clone + Send + Sync + 'static,
     client::Config: FromRef<S>,
 {
     Router::<S>::new()

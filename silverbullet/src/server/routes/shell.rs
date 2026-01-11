@@ -5,22 +5,22 @@ use axum::{
 };
 use http::StatusCode;
 
-use crate::shell::{Handler, Request, Response};
+use crate::shell::{self, Request, Response};
 
-pub trait ShellProvider {
-    type Shell: Handler + Clone + Send + Sync;
+pub trait Provider {
+    type Output: shell::Shell + Send + Sync;
 
-    fn shell(&self) -> Self::Shell;
+    fn provide(&self) -> Self::Output;
 }
 
 pub struct Shell<S>(pub S);
 
-impl<S> FromRef<S> for Shell<S::Shell>
+impl<S> FromRef<S> for Shell<S::Output>
 where
-    S: ShellProvider + Send + Sync,
+    S: Provider + Send + Sync,
 {
     fn from_ref(state: &S) -> Self {
-        Shell(state.shell())
+        Shell(state.provide())
     }
 }
 
@@ -29,10 +29,10 @@ pub async fn shell<S>(
     Json(request): Json<Request>,
 ) -> Result<Json<Response>, impl IntoResponse>
 where
-    S: Handler,
+    S: shell::Shell,
 {
     shell
-        .handle(request)
-        .map(|resp| Json(resp))
+        .exec(request)
+        .map(Json::from)
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response())
 }

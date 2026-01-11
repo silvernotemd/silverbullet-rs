@@ -24,11 +24,11 @@ impl server::routes::fs::Provider for AppState {
     }
 }
 
-impl server::routes::shell::ShellProvider for AppState {
-    type Shell = NoShell;
+impl server::routes::shell::Provider for AppState {
+    type Output = NoShell;
 
-    fn shell(&self) -> Self::Shell {
-        NoShell {}
+    fn provide(&self) -> Self::Output {
+        NoShell::default()
     }
 }
 
