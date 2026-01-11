@@ -1,20 +1,21 @@
 pub mod fs;
+pub mod shell;
 
-use axum::Json;
+// use axum::Json;
 use axum::response::IntoResponse;
 use http::HeaderMap;
 
 use crate::client::Logger;
 use crate::client::{self, TracingLogger};
-use crate::shell;
+// use crate::shell;
 
-pub async fn shell() -> Json<shell::Response> {
-    axum::Json(shell::Response {
-        code: 1,
-        stdout: "".to_string(),
-        stderr: "Not supported".to_string(),
-    })
-}
+// pub async fn shell() -> Json<shell::Response> {
+//     axum::Json(shell::Response {
+//         code: 1,
+//         stdout: "".to_string(),
+//         stderr: "Not supported".to_string(),
+//     })
+// }
 
 pub async fn log(
     headers: HeaderMap,

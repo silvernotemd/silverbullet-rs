@@ -9,12 +9,12 @@ pub mod routes;
 
 pub fn router<S>() -> Router<S>
 where
-    S: routes::fs::Provider + Clone + Send + Sync + 'static,
+    S: routes::fs::Provider + routes::shell::Provider + Clone + Send + Sync + 'static,
     client::Config: FromRef<S>,
 {
     Router::<S>::new()
         .nest("/.fs", routes::fs::router())
-        .route("/.shell", routing::post(routes::shell))
+        .route("/.shell", routing::post(routes::shell::shell))
         .route("/.ping", routing::get(routes::ping))
         .route("/.logs", routing::post(routes::log))
         .route("/.config", routing::get(routes::config))

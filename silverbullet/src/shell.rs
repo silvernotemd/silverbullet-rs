@@ -5,8 +5,8 @@ use thiserror::Error;
 #[error("Failed to run command")]
 pub struct Error {}
 
-pub trait Handler {
-    fn handle(&self, request: Request) -> Result<Response, Error>;
+pub trait Shell {
+    fn exec(&self, request: Request) -> Result<Response, Error>;
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -25,10 +25,11 @@ pub struct Response {
     pub stderr: String,
 }
 
+#[derive(Debug, Default)]
 pub struct NoShell {}
 
-impl Handler for NoShell {
-    fn handle(&self, _request: Request) -> Result<Response, Error> {
+impl Shell for NoShell {
+    fn exec(&self, _request: Request) -> Result<Response, Error> {
         Ok(Response {
             code: 1,
             stdout: "".to_string(),
