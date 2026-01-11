@@ -154,7 +154,8 @@ mod tests {
         }
     }
 
-    #[async_trait]
+    #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
+    #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
     impl ReadOnlyFilesystem for MemoryFs {
         async fn list(&self) -> Result<Vec<FileMeta>> {
             Ok(self
@@ -186,7 +187,8 @@ mod tests {
         }
     }
 
-    #[async_trait]
+    #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
+    #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
     impl WritableFilesystem for MemoryFs {
         async fn put(&self, path: &str, data: Stream, meta: IncomingFileMeta) -> Result<FileMeta> {
             use futures::TryStreamExt;

@@ -21,7 +21,8 @@ impl Default for Client {
     }
 }
 
-#[async_trait]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 impl proxy::Client for Client {
     async fn send(&self, request: Request<Bytes>) -> Result<Response<Bytes>> {
         // Convert http::Request to reqwest::Request
