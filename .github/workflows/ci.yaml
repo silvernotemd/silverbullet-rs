@@ -44,10 +44,6 @@ jobs:
       fail-fast: false
       matrix:
         package: [silverbullet, silverbullet-server]
-        target: ["", wasm32-unknown-unknown]
-        exclude:
-          - package: silverbullet-server
-            target: wasm32-unknown-unknown
 
     steps:
       - name: Checkout repository
@@ -56,26 +52,13 @@ jobs:
       - name: Set up Rust
         uses: ./.github/actions/rust/
 
-      - name: Install wasm target
-        run: rustup target add ${{ matrix.target }}
-        if: matrix.target != ''
-
       - name: Run tests
-        run: cargo test -p ${{ matrix.package }} ${{ matrix.target && format('--target {0}', matrix.target) }}
+        run: cargo test -p ${{ matrix.package }}
 
   lint:
     name: Lint
     runs-on: ubuntu-latest
 
-    strategy:
-      fail-fast: false
-      matrix:
-        package: [silverbullet, silverbullet-server]
-        target: ["", wasm32-unknown-unknown]
-        exclude:
-          - package: silverbullet-server
-            target: wasm32-unknown-unknown
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
@@ -83,12 +66,8 @@ jobs:
       - name: Set up Rust
         uses: ./.github/actions/rust/
 
-      - name: Install wasm target
-        run: rustup target add ${{ matrix.target }}
-        if: matrix.target != ''
-
       - name: Run fmt
         run: cargo fmt -- --check
 
       - name: Run clippy
-        run: cargo clippy -p ${{ matrix.package }} ${{ matrix.target && format('--target {0}', matrix.target) }}
+        run: cargo clippy
