@@ -12,7 +12,6 @@ pub mod embed;
 #[cfg(feature = "opendal")]
 pub mod opendal;
 
-#[cfg(any(feature = "embed", feature = "opendal"))]
 mod utils;
 
 #[derive(Error, Debug)]
@@ -162,7 +161,7 @@ impl TryFrom<http::HeaderMap> for IncomingFileMeta {
 
         Ok(IncomingFileMeta {
             // TODO: add now
-            created: get_header(&value, "x-created")?,
+            created: get_header(&value, "x-created")?.or(Some(utils::now())),
             content_type: get_header(&value, http::header::CONTENT_TYPE)?,
             size: get_header(&value, http::header::CONTENT_LENGTH)?,
             ..Default::default()
