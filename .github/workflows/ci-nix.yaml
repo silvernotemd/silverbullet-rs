@@ -36,7 +36,7 @@ jobs:
           build: "true"
 
       - name: Set up Rust
-        uses: ./.github/actions/rust/
+        uses: ./.github/actions/devenv-rust/
 
       - name: Build
         shell: devenv shell bash -- -e {0}
@@ -60,7 +60,7 @@ jobs:
           build: "true"
 
       - name: Set up Rust
-        uses: ./.github/actions/rust/
+        uses: ./.github/actions/devenv-rust/
 
       - name: Run tests
         shell: devenv shell bash -- -e {0}
@@ -84,7 +84,7 @@ jobs:
           build: "true"
 
       - name: Set up Rust
-        uses: ./.github/actions/rust/
+        uses: ./.github/actions/devenv-rust/
 
       - name: Run fmt
         shell: devenv shell bash -- -e {0}
