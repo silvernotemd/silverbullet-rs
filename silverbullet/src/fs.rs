@@ -190,7 +190,11 @@ impl From<Error> for axum::http::StatusCode {
         match value {
             Error::NotFound(..) => axum::http::StatusCode::NOT_FOUND,
             Error::PermissionDenied(..) => axum::http::StatusCode::FORBIDDEN,
-            _ => axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+            e => {
+                tracing::error!("Error: {:?}", e);
+
+                axum::http::StatusCode::INTERNAL_SERVER_ERROR
+            }
         }
     }
 }
