@@ -161,8 +161,10 @@ impl TryFrom<http::HeaderMap> for IncomingFileMeta {
         }
 
         Ok(IncomingFileMeta {
+            // TODO: add now
             created: get_header(&value, "x-created")?,
             content_type: get_header(&value, http::header::CONTENT_TYPE)?,
+            size: get_header(&value, http::header::CONTENT_LENGTH)?,
             ..Default::default()
         })
     }
