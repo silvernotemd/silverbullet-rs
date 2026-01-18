@@ -314,7 +314,7 @@ mod http_tests {
         let meta: IncomingFileMeta = headers.try_into().unwrap();
 
         assert_eq!(meta.content_type, None);
-        assert_eq!(meta.created, None);
+        assert!(meta.created.is_some()); // Should have fallback timestamp
         assert_eq!(meta.perm, None);
         assert_eq!(meta.last_modified, None);
         assert_eq!(meta.size, None);
