@@ -994,7 +994,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "tracing",
- "web-time 1.1.0",
+ "web-time",
 ]
 
 [[package]]
@@ -1015,7 +1015,7 @@ dependencies = [
  "thiserror",
  "tinyvec",
  "tracing",
- "web-time 1.1.0",
+ "web-time",
 ]
 
 [[package]]
@@ -1230,7 +1230,7 @@ version = "1.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "21e6f2ab2928ca4291b86736a8bd920a277a399bba1589409d72154ff87c1282"
 dependencies = [
- "web-time 1.1.0",
+ "web-time",
  "zeroize",
 ]
 
@@ -1411,7 +1411,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "tracing",
- "web-time 0.1.0",
+ "web-time",
  "worker",
  "worker-macros",
 ]
@@ -1891,17 +1891,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9b32828d774c412041098d182a8b38b16ea816958e07cf40eec2bc080ae137ac"
 dependencies = [
  "js-sys",
- "wasm-bindgen",
-]
-
-[[package]]
-name = "web-time"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fa75ec260dcf59cc310827bae1d7f629809b173dbfe808a633e19754dd4282a5"
-dependencies = [
- "js-sys",
- "once_cell",
  "wasm-bindgen",
 ]
 
