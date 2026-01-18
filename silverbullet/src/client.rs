@@ -49,3 +49,9 @@ pub struct LogEntry {
     pub message: String,
     pub timestamp: i64,
 }
+
+pub struct DiscardLogger;
+
+impl Logger for DiscardLogger {
+    fn log(&self, _client_ip: String, _entries: Vec<LogEntry>) {}
+}

@@ -1,6 +1,8 @@
 use axum::extract::FromRef;
+use axum_client_ip::ClientIpSource;
 use http::request::Parts;
 use opendal::{Operator, services::Memory};
+use silverbullet::client::TracingLogger;
 use silverbullet::{client, fs::opendal::Filesystem, proxy, server, shell::NoShell};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
@@ -44,6 +46,14 @@ impl server::routes::proxy::Provider for AppState {
     }
 }
 
+impl server::routes::log::Provider for AppState {
+    type Output = TracingLogger;
+
+    fn provide(&self) -> Self::Output {
+        TracingLogger::new()
+    }
+}
+
 #[tokio::main]
 async fn main() {
     tracing_subscriber::registry()
@@ -65,7 +75,9 @@ async fn main() {
 
     let state = AppState::new(config, operator);
 
-    let app = server::router().with_state(state);
+    let app = server::router()
+        .layer(ClientIpSource::RightmostXForwardedFor.into_extension())
+        .with_state(state);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000")
         .await

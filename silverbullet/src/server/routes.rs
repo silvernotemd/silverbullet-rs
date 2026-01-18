@@ -1,27 +1,11 @@
 pub mod fs;
+pub mod log;
 pub mod proxy;
 pub mod shell;
 
 use axum::response::IntoResponse;
-use http::HeaderMap;
 
-#[cfg(feature = "tracing")]
-use crate::client::{self, Logger, TracingLogger};
-
-pub async fn log(
-    headers: HeaderMap,
-    axum::Json(entries): axum::Json<Vec<client::LogEntry>>,
-) -> axum::http::StatusCode {
-    let ip = headers
-        .get("cf-connecting-ip")
-        .and_then(|v| v.to_str().ok())
-        .unwrap_or("<unknown-ip>");
-
-    let logger = TracingLogger::new();
-    logger.log(ip.to_string(), entries);
-
-    axum::http::StatusCode::OK
-}
+use crate::client;
 
 pub async fn config(
     axum::extract::State(config): axum::extract::State<client::Config>,
