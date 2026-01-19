@@ -12,6 +12,9 @@ pub mod embed;
 #[cfg(feature = "opendal")]
 pub mod opendal;
 
+#[cfg(all(target_arch = "wasm32", feature = "cloudflare"))]
+pub mod cloudflare;
+
 mod utils;
 
 #[derive(Error, Debug)]
