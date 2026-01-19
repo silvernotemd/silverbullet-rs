@@ -3,16 +3,16 @@ pub mod log;
 pub mod proxy;
 pub mod shell;
 
-use axum::response::IntoResponse;
+use axum::{extract::State, response::IntoResponse};
 
 use crate::client;
 
-pub async fn config(
-    axum::extract::State(config): axum::extract::State<client::Config>,
-) -> impl IntoResponse {
+#[cfg_attr(feature = "debug", axum::debug_handler)]
+pub async fn config(State(config): State<client::Config>) -> impl IntoResponse {
     ([("Cache-Control", "no-cache")], axum::Json(config))
 }
 
+#[cfg_attr(feature = "debug", axum::debug_handler)]
 pub async fn client_manifest() -> impl IntoResponse {
     let host_prefix_url: Option<String> = None;
 
@@ -44,6 +44,7 @@ pub async fn client_manifest() -> impl IntoResponse {
     axum::Json(client_manifest)
 }
 
+#[cfg_attr(feature = "debug", axum::debug_handler)]
 pub async fn ping() -> impl IntoResponse {
     ([("Cache-Control", "no-cache"), ("X-Space-Path", "")], "OK")
 }

@@ -1,11 +1,11 @@
 pub mod error;
-use axum::extract::FromRef;
-use axum::{Router, routing};
 pub use error::*;
 
-use crate::client;
-
 pub mod routes;
+
+use axum::{Router, extract::FromRef, routing};
+
+use crate::client;
 
 pub fn router<S>() -> Router<S>
 where

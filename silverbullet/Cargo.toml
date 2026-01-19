@@ -10,7 +10,7 @@ publish = false
 
 [dependencies]
 async-trait = "0.1.89"
-axum = { version = "0.8.8", default-features = false, features = ["json"], optional = true }
+axum = { version = "0.8.8", default-features = false, features = ["json", "macros"], optional = true }
 axum-client-ip = { version = "1.1.3", optional = true }
 bytes = "1.11.0"
 futures = "0.3.31"
@@ -33,6 +33,7 @@ default = []
 
 axum = ["dep:axum"]
 cloudflare = ["dep:worker", "dep:worker-macros"]
+debug = []
 embed = ["dep:rust-embed"]
 reqwest = ["dep:reqwest"]
 proxy-cloudflare = ["cloudflare"]

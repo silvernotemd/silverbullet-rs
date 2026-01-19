@@ -1,10 +1,8 @@
-use axum::body::Body;
-use axum::response::AppendHeaders;
-use axum::{Json, Router};
 use axum::{
+    Json, Router,
+    body::Body,
     extract::{FromRequestParts, Path},
-    response::IntoResponse,
-    response::Response,
+    response::{AppendHeaders, IntoResponse, Response},
     routing,
 };
 use futures::TryStreamExt;
@@ -125,6 +123,7 @@ where
     Ok("OK")
 }
 
+#[cfg_attr(feature = "debug", axum::debug_handler)]
 pub async fn options() -> impl IntoResponse {
     ([("Allow", "GET, PUT, DELETE, OPTIONS")], StatusCode::OK)
 }

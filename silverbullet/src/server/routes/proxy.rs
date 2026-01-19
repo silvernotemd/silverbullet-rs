@@ -1,5 +1,7 @@
-use axum::extract::{FromRef, Request, State};
-use axum::response::{IntoResponse, Response};
+use axum::{
+    extract::{FromRef, Request, State},
+    response::{IntoResponse, Response},
+};
 use http_body_util::BodyExt;
 
 use crate::proxy::{self, Client};
