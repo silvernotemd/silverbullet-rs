@@ -150,7 +150,7 @@ impl ReadOnlyFilesystem for Filesystem {
                 .map_err(|e| std::io::Error::other(e.to_string()))
         });
 
-        use silverbullet::fs::StreamExt;
+        use crate::fs::StreamExt;
 
         Ok((stream.into_boxed(), meta))
     }
