@@ -11,7 +11,7 @@ publish = false
 [dependencies]
 async-trait = "0.1.89"
 axum = { version = "0.8.8", default-features = false, features = ["json", "macros"], optional = true }
-axum-client-ip = { version = "1.2.0", default-features = false, optional = true }
+axum-client-ip = { version = "1.3.1", default-features = false, optional = true }
 bytes = "1.11.0"
 futures = "0.3.31"
 http = "1.4.0"
