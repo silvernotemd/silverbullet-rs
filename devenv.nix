@@ -13,9 +13,15 @@
     inputs.wrangler.packages.${pkgs.stdenv.system}.wrangler
   ];
 
-  languages.rust = {
-    enable = true;
-    channel = "stable";
-    targets = [ "wasm32-unknown-unknown" ];
+  languages = {
+    rust = {
+      enable = true;
+      channel = "stable";
+      targets = [ "wasm32-unknown-unknown" ];
+    };
+
+    deno = {
+      enable = true;
+    };
   };
 }
