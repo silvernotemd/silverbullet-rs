@@ -1,0 +1,11 @@
+{
+  "name": "silverbullet",
+  "engineVersion": "v0.19.10",
+  "sdk": {
+    "source": "github.com/vito/dang/dagger-sdk@eff4dc7e590b4ac823285c0e6c51332bc4385672"
+  },
+  "include": [
+    "!.direnv",
+    "!.devenv"
+  ]
+}

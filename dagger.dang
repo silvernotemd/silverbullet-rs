@@ -1,0 +1,18 @@
+type Silverbullet {
+  # let sourve: Directory! @defaultPath(path: "/")
+
+  """Build the frontend bundle"""
+  pub frontend(): Container! {
+    let source = git("https://github.com/silverbulletmd/silverbullet.git").tag("2.4.1").tree
+
+    let builder = container.from("denoland/deno:2.6.5")
+      .withWorkdir("/app")
+      .withMountedDirectory("/app", source)
+      .withExec(["apt", "update"])
+      .withExec(["apt", "install", "-y", "git"])
+      .withExec(["deno", "run", "-A", "build_plugs_libraries.ts"])
+      .withExec(["deno", "run", "-A", "build_client.ts"])
+
+    builder
+  }
+}

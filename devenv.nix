@@ -10,7 +10,8 @@
     pkgs.cargo-watch
     pkgs.lld
     pkgs.worker-build
-    inputs.wrangler.packages.${pkgs.stdenv.system}.wrangler
+    inputs.wrangler.packages.${pkgs.stdenv.hostPlatform.system}.wrangler
+    inputs.dagger.packages.${pkgs.stdenv.hostPlatform.system}.dagger
   ];
 
   languages = {

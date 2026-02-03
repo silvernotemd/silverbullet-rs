@@ -19,3 +19,6 @@ indent_size = 2
 
 [.zed/settings.json]
 indent_size = 2
+
+[*.dang]
+indent_size = 2

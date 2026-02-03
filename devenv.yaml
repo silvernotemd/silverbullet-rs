@@ -14,3 +14,8 @@ inputs:
     inputs:
       nixpkgs:
         follows: nixpkgs_
+  dagger:
+    url: github:dagger/nix
+    inputs:
+      nixpkgs:
+        follows: nixpkgs
