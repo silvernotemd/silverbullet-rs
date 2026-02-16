@@ -13,7 +13,7 @@ async-trait = "0.1.89"
 axum = { version = "0.8.8", default-features = false, features = ["json", "macros"], optional = true }
 axum-client-ip = { version = "1.2.0", default-features = false, optional = true }
 bytes = "1.11.0"
-futures = "0.3.31"
+futures = "0.3.32"
 http = "1.4.0"
 http-body-util = { version = "0.1" }
 opendal = { version = "0.55.0", default-features = false, optional = true }
